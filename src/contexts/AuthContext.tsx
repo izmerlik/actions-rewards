@@ -8,7 +8,6 @@ import {
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
-  User as FirebaseUser,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
