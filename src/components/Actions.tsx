@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,13 +13,7 @@ export default function Actions() {
   const [newActionXP, setNewActionXP] = useState('');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      fetchActions();
-    }
-  }, [user]);
-
-  const fetchActions = async () => {
+  const fetchActions = useCallback(async () => {
     if (!user) return;
     
     const actionsRef = collection(db, 'actions');
@@ -35,7 +29,13 @@ export default function Actions() {
     
     setActions(actionsData);
     setLoading(false);
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchActions();
+    }
+  }, [user, fetchActions]);
 
   const handleAddAction = async (e: React.FormEvent) => {
     e.preventDefault();

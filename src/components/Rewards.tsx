@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { collection, query, where, getDocs, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,13 +13,7 @@ export default function Rewards() {
   const [newRewardXPCost, setNewRewardXPCost] = useState('');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      fetchRewards();
-    }
-  }, [user]);
-
-  const fetchRewards = async () => {
+  const fetchRewards = useCallback(async () => {
     if (!user) return;
     
     const rewardsRef = collection(db, 'rewards');
@@ -35,7 +29,13 @@ export default function Rewards() {
     
     setRewards(rewardsData);
     setLoading(false);
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchRewards();
+    }
+  }, [user, fetchRewards]);
 
   const handleAddReward = async (e: React.FormEvent) => {
     e.preventDefault();
