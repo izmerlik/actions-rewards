@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint --fix",
+    "lint:check": "next lint"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
@@ -27,8 +28,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@typescript-eslint/eslint-plugin": "^8.28.0",
+    "@typescript-eslint/parser": "^8.28.0",
     "eslint": "^9",
     "eslint-config-next": "15.2.4",
+    "eslint-import-resolver-typescript": "^4.2.5",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
