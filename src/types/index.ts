@@ -2,6 +2,7 @@ export interface User {
   id: string;
   email: string;
   xp: number;
+  isGuest?: boolean;
 }
 
 export interface Action {
@@ -31,5 +32,6 @@ export interface AuthContextType {
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   googleSignIn: () => Promise<void>;
+  guestSignIn: () => Promise<void>;
   updateUserXP: (newXP: number) => void;
 } 

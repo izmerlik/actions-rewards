@@ -2,6 +2,9 @@
 
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { useState, useEffect, useCallback } from 'react';
+import { Button, IconButton, TextField, Typography, Paper, Tooltip } from '@mui/material';
+import ReplayIcon from '@mui/icons-material/Replay';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
@@ -127,78 +130,123 @@ export default function Actions() {
     }
   };
 
+  const sortedActions = [...actions].sort((a, b) => {
+    if (a.completed === b.completed) return 0;
+    return a.completed ? 1 : -1;
+  });
+
   if (loading) {
     return <div className="text-center">Loading actions...</div>;
   }
 
   return (
-    <div className="space-y-6">
-      <form onSubmit={handleAddAction} className="space-y-4">
-        <div>
-          <input
-            type="text"
+    <div className="space-y-4">
+      <Typography variant="h6" component="h2" sx={{ mb: 1, fontWeight: 600 }} className="hidden md:block">
+        Actions
+      </Typography>
+      <Paper sx={{ p: 2, backgroundColor: '#ECEFF7', borderRadius: 2, boxShadow: 'none' }}>
+        <form onSubmit={handleAddAction} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <TextField
+            label="Action title"
             value={newActionTitle}
             onChange={(e) => setNewActionTitle(e.target.value)}
-            placeholder="Action title"
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            fullWidth
             required
+            margin="dense"
+            size="small"
+            InputLabelProps={{ required: false }}
+            sx={{
+              '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#4f46e5',
+              },
+            }}
           />
-        </div>
-        <div>
-          <input
+          <TextField
+            label="XP value"
             type="number"
             value={newActionXP}
             onChange={(e) => setNewActionXP(e.target.value)}
-            placeholder="XP value"
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            fullWidth
             required
-            min="1"
+            margin="dense"
+            inputProps={{ min: 1 }}
+            size="small"
+            InputLabelProps={{ required: false }}
+            sx={{
+              '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#4f46e5',
+              },
+            }}
           />
-        </div>
-        <button
-          type="submit"
-          className="w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-        >
-          Add Action
-        </button>
-      </form>
-
-      <div className="space-y-4">
-        {actions.map((action) => (
-          <div
-            key={action.id}
-            className="flex items-center justify-between rounded-lg border border-gray-200 p-4"
+          <Button
+            type="submit"
+            variant="text"
+            color="primary"
+            fullWidth
+            size="medium"
+            sx={{ mt: 0.5, fontSize: '0.9375rem', fontWeight: 600 }}
           >
-            <div>
-              <h3 className="font-medium text-gray-900">{action.title}</h3>
-              <p className="text-sm text-gray-500">{action.xp} XP</p>
-            </div>
-            <div className="flex space-x-2">
-              {action.completed ? (
-                <button
-                  onClick={() => handleRepeatAction(action)}
-                  className="ml-2 rounded bg-yellow-500 px-3 py-1 text-white hover:bg-yellow-600"
-                >
-                  Repeat
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleCompleteAction(action)}
-                  className="ml-2 rounded bg-green-600 px-3 py-1 text-white hover:bg-green-700"
-                >
-                  Complete
-                </button>
-              )}
-              <button
-                onClick={() => handleDeleteAction(action.id)}
-                className="rounded-md bg-red-600 px-3 py-1 text-sm font-semibold text-white hover:bg-red-500"
-              >
-                Delete
-              </button>
-            </div>
+            Add Action
+          </Button>
+        </form>
+      </Paper>
+      {sortedActions.map((action) => (
+        <Paper
+          key={action.id}
+          elevation={!action.completed ? 1 : 0}
+          variant={action.completed ? 'outlined' : undefined}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            p: 2,
+            backgroundColor: !action.completed ? '#fff' : 'transparent',
+            borderRadius: 2,
+            boxShadow: !action.completed ? undefined : 'none',
+          }}
+        >
+          <div>
+            <Typography
+              variant="subtitle1"
+              sx={{ fontWeight: 600, color: action.completed ? 'text.secondary' : 'text.primary' }}
+            >
+              {action.title}
+            </Typography>
+            <p className="text-sm text-gray-500">{action.xp} XP</p>
           </div>
-        ))}
-      </div>
+          <div className="flex space-x-2">
+            {action.completed ? (
+              <Tooltip title="Repeat">
+                <IconButton
+                  onClick={() => handleRepeatAction(action)}
+                  color="default"
+                  aria-label="repeat"
+                  sx={{ ml: 1 }}
+                >
+                  <ReplayIcon />
+                </IconButton>
+              </Tooltip>
+            ) : (
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => handleCompleteAction(action)}
+                sx={{ ml: 2 }}
+              >
+                Complete
+              </Button>
+            )}
+            <IconButton
+              onClick={() => handleDeleteAction(action.id)}
+              color="default"
+              sx={{ ml: 1 }}
+              aria-label="delete"
+            >
+              <DeleteIcon />
+            </IconButton>
+          </div>
+        </Paper>
+      ))}
     </div>
   );
 } 

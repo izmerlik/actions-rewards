@@ -7,6 +7,7 @@ import {
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
+  signInAnonymously,
   User as FirebaseUser,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -31,20 +32,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('AuthProvider: Setting up auth listener');
     try {
       const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+        console.log('AuthProvider: Auth state changed', { firebaseUser });
         try {
           if (firebaseUser) {
+            console.log('AuthProvider: User is signed in', { uid: firebaseUser.uid });
             const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
             const userData = userDoc.data();
             
             if (userData) {
+              console.log('AuthProvider: Found existing user data', userData);
               setUser({
                 id: firebaseUser.uid,
                 email: firebaseUser.email ?? '',
                 xp: userData.xp || 0,
               });
             } else {
+              console.log('AuthProvider: Creating new user data');
               const newUser: User = {
                 id: firebaseUser.uid,
                 email: firebaseUser.email ?? '',
@@ -54,19 +60,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               setUser(newUser);
             }
           } else {
+            console.log('AuthProvider: No user is signed in');
             setUser(null);
           }
         } catch (err) {
-          console.error('Error in auth state change:', err);
+          console.error('AuthProvider: Error in auth state change:', err);
           setError('Failed to load user data');
         } finally {
+          console.log('AuthProvider: Setting loading to false');
           setLoading(false);
         }
       });
 
-      return () => unsubscribe();
+      return () => {
+        console.log('AuthProvider: Cleaning up auth listener');
+        unsubscribe();
+      };
     } catch (err) {
-      console.error('Error setting up auth listener:', err);
+      console.error('AuthProvider: Error setting up auth listener:', err);
       setError('Failed to initialize authentication');
       setLoading(false);
     }
@@ -134,6 +145,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const guestSignIn = async () => {
+    try {
+      setError(null);
+      console.log('Starting guest sign in...');
+      
+      const result = await signInAnonymously(auth);
+      console.log('Anonymous sign in successful:', result.user.uid);
+      
+      const newUser: User = {
+        id: result.user.uid,
+        email: 'guest@example.com',
+        xp: 0,
+        isGuest: true,
+      };
+      
+      console.log('Creating guest user document...');
+      await setDoc(doc(db, 'users', result.user.uid), newUser);
+      console.log('Guest user document created successfully');
+      
+    } catch (err) {
+      console.error('Guest sign in error:', err);
+      if (err instanceof Error) {
+        setError(`Failed to sign in as guest: ${err.message}`);
+      } else {
+        setError('Failed to sign in as guest');
+      }
+      throw err;
+    }
+  };
+
   const updateUserXP = (newXP: number) => {
     if (user) {
       setUser({ ...user, xp: newXP });
@@ -148,6 +189,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signUp,
     signOut,
     googleSignIn,
+    guestSignIn,
     updateUserXP,
   };
 

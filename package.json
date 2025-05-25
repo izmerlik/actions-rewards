@@ -10,8 +10,12 @@
     "lint:check": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
     "@headlessui/react": "^1.7.18",
     "@hookform/resolvers": "^3.3.4",
+    "@mui/icons-material": "^7.1.0",
+    "@mui/material": "^7.1.0",
     "assert": "^2.1.0",
     "browserify-zlib": "^0.2.0",
     "clsx": "^2.1.0",

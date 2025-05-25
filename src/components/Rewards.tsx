@@ -2,6 +2,9 @@
 
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { useState, useEffect, useCallback } from 'react';
+import { Button, IconButton, TextField, Typography, Paper, Tooltip } from '@mui/material';
+import ReplayIcon from '@mui/icons-material/Replay';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
@@ -97,6 +100,23 @@ export default function Rewards() {
     }
   };
 
+  const handleRepeatReward = async (reward: Reward) => {
+    if (!user) return;
+    try {
+      const rewardRef = doc(db, 'rewards', reward.id);
+      await updateDoc(rewardRef, {
+        redeemedAt: null,
+      });
+      setRewards(rewards.map(r =>
+        r.id === reward.id
+          ? { ...r, redeemedAt: undefined }
+          : r
+      ));
+    } catch (error) {
+      console.error('Error repeating reward:', error);
+    }
+  };
+
   const handleDeleteReward = async (rewardId: string) => {
     try {
       await deleteDoc(doc(db, 'rewards', rewardId));
@@ -106,71 +126,125 @@ export default function Rewards() {
     }
   };
 
+  const sortedRewards = [...rewards].sort((a, b) => {
+    if (!!a.redeemedAt === !!b.redeemedAt) return 0;
+    return a.redeemedAt ? 1 : -1;
+  });
+
   if (loading) {
     return <div className="text-center">Loading rewards...</div>;
   }
 
   return (
-    <div className="space-y-6">
-      <form onSubmit={handleAddReward} className="space-y-4">
-        <div>
-          <input
-            type="text"
+    <div className="space-y-4">
+      <Typography variant="h6" component="h2" sx={{ mb: 1, fontWeight: 600 }} className="hidden md:block">
+        Rewards
+      </Typography>
+      <Paper sx={{ p: 2, backgroundColor: '#ECEFF7', borderRadius: 2, boxShadow: 'none' }}>
+        <form onSubmit={handleAddReward} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <TextField
+            label="Reward title"
             value={newRewardTitle}
             onChange={(e) => setNewRewardTitle(e.target.value)}
-            placeholder="Reward title"
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            fullWidth
             required
+            margin="dense"
+            size="small"
+            InputLabelProps={{ required: false }}
+            sx={{
+              '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#4f46e5',
+              },
+            }}
           />
-        </div>
-        <div>
-          <input
+          <TextField
+            label="XP cost"
             type="number"
             value={newRewardXPCost}
             onChange={(e) => setNewRewardXPCost(e.target.value)}
-            placeholder="XP cost"
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            fullWidth
             required
-            min="1"
+            margin="dense"
+            inputProps={{ min: 1 }}
+            size="small"
+            InputLabelProps={{ required: false }}
+            sx={{
+              '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#4f46e5',
+              },
+            }}
           />
-        </div>
-        <button
-          type="submit"
-          className="w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-        >
-          Add Reward
-        </button>
-      </form>
-
-      <div className="space-y-4">
-        {rewards.map((reward) => (
-          <div
-            key={reward.id}
-            className="flex items-center justify-between rounded-lg border border-gray-200 p-4"
+          <Button
+            type="submit"
+            variant="text"
+            color="primary"
+            fullWidth
+            size="medium"
+            sx={{ mt: 0.5, fontSize: '0.9375rem', fontWeight: 600 }}
           >
-            <div>
-              <h3 className="font-medium text-gray-900">{reward.title}</h3>
-              <p className="text-sm text-gray-500">{reward.xpCost} XP</p>
-            </div>
-            <div className="flex space-x-2">
-              {!reward.redeemedAt && user && user.xp >= reward.xpCost && (
-                <button
-                  onClick={() => handleRedeemReward(reward)}
-                  className="rounded-md bg-green-600 px-3 py-1 text-sm font-semibold text-white hover:bg-green-500"
-                >
-                  Redeem
-                </button>
-              )}
-              <button
-                onClick={() => handleDeleteReward(reward.id)}
-                className="rounded-md bg-red-600 px-3 py-1 text-sm font-semibold text-white hover:bg-red-500"
-              >
-                Delete
-              </button>
-            </div>
+            Add Reward
+          </Button>
+        </form>
+      </Paper>
+      {sortedRewards.map((reward) => (
+        <Paper
+          key={reward.id}
+          elevation={!reward.redeemedAt ? 1 : 0}
+          variant={reward.redeemedAt ? 'outlined' : undefined}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            p: 2,
+            backgroundColor: !reward.redeemedAt ? '#fff' : 'transparent',
+            borderRadius: 2,
+            boxShadow: !reward.redeemedAt ? undefined : 'none',
+          }}
+        >
+          <div>
+            <Typography
+              variant="subtitle1"
+              sx={{ fontWeight: 600, color: reward.redeemedAt ? 'text.secondary' : 'text.primary' }}
+            >
+              {reward.title}
+            </Typography>
+            <p className="text-sm text-gray-500">{reward.xpCost} XP</p>
           </div>
-        ))}
-      </div>
+          <div className="flex space-x-2">
+            {reward.redeemedAt ? (
+              <Tooltip title="Repeat">
+                <IconButton
+                  onClick={() => handleRepeatReward(reward)}
+                  color="default"
+                  aria-label="repeat"
+                  sx={{ ml: 1 }}
+                >
+                  <ReplayIcon />
+                </IconButton>
+              </Tooltip>
+            ) : (
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => handleRedeemReward(reward)}
+                sx={{ ml: 2 }}
+              >
+                Redeem
+              </Button>
+            )}
+            <Tooltip title="Delete">
+              <IconButton
+                onClick={() => handleDeleteReward(reward.id)}
+                color="default"
+                sx={{ ml: 1 }}
+                aria-label="delete"
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Tooltip>
+          </div>
+        </Paper>
+      ))}
     </div>
   );
 }
