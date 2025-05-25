@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 
-import { AuthProvider } from '@/contexts/AuthContext';
 import ThemeRegistry from '@/components/ThemeRegistry';
+import { AuthProvider } from '@/contexts/AuthContext';
 import './globals.css';
 
 const inter = Inter({
