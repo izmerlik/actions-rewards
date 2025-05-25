@@ -1,6 +1,5 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -11,6 +10,8 @@ import {
   User as FirebaseUser,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+
 import { auth, db } from '@/lib/firebase';
 import { AuthContextType, User } from '@/types';
 

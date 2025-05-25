@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+
 import { AuthProvider } from '@/contexts/AuthContext';
+import './globals.css';
 
 const inter = Inter({
   subsets: ["latin"],
