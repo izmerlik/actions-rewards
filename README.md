@@ -10,6 +10,8 @@ A web application that helps users track their actions and earn rewards based on
 - Create custom rewards with XP costs
 - Redeem rewards using earned XP
 - Real-time XP balance tracking
+- Responsive design with mobile-first approach
+- Repeat completed actions for more XP
 
 ## Tech Stack
 
@@ -48,6 +50,17 @@ npm run dev
 - `/src/contexts` - React context providers
 - `/src/lib` - Utility functions and configurations
 - `/src/types` - TypeScript type definitions
+
+## Deployment
+
+The application is automatically deployed to Vercel when changes are pushed to the main branch.
+
+### Manual Deployment
+
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+2. Select the "actions-rewards" project
+3. Click "Deploy" button
+4. Wait for the deployment to complete
 
 ## Learn More
 
