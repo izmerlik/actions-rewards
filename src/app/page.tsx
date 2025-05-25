@@ -3,10 +3,8 @@
 import LoginIcon from '@mui/icons-material/Login';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PersonIcon from '@mui/icons-material/Person';
-
+import { Box, Button, CircularProgress, Container, Paper, Typography } from '@mui/material';
 import Link from 'next/link';
-import { Box, Button, Container, Typography, CircularProgress, Paper } from '@mui/material';
-
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Home() {

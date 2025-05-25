@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Typography, Tabs, Tab, Paper } from '@mui/material';
+import { Button, Paper, Tab, Tabs, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 

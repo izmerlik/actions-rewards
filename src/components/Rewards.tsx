@@ -1,12 +1,10 @@
 'use client';
 
-import ReplayIcon from '@mui/icons-material/Replay';
 import DeleteIcon from '@mui/icons-material/Delete';
-
-import { useState, useEffect, useCallback } from 'react';
+import ReplayIcon from '@mui/icons-material/Replay';
 import { Button, IconButton, TextField, Typography, Paper, Tooltip } from '@mui/material';
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
-
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
 import { Reward } from '@/types';
