@@ -3,13 +3,9 @@
 import GoogleIcon from '@mui/icons-material/Google';
 import LoginIcon from '@mui/icons-material/Login';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
-
 import { Alert, Box, Button, Container, Divider, Paper, TextField, Typography } from '@mui/material';
-
 import { useRouter } from 'next/navigation';
-
 import { useState } from 'react';
-
 import { useAuth } from '@/contexts/AuthContext';
 
 interface AuthFormProps {
