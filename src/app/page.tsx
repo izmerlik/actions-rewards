@@ -1,10 +1,11 @@
 'use client';
 
-import Link from 'next/link';
-import { Box, Button, Container, Typography, CircularProgress, Paper } from '@mui/material';
 import LoginIcon from '@mui/icons-material/Login';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PersonIcon from '@mui/icons-material/Person';
+
+import Link from 'next/link';
+import { Box, Button, Container, Typography, CircularProgress, Paper } from '@mui/material';
 
 import { useAuth } from '@/contexts/AuthContext';
 

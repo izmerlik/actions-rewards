@@ -1,5 +1,9 @@
 'use client';
 
+import GoogleIcon from '@mui/icons-material/Google';
+import LoginIcon from '@mui/icons-material/Login';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -12,9 +16,6 @@ import {
   Alert,
   Divider,
 } from '@mui/material';
-import GoogleIcon from '@mui/icons-material/Google';
-import LoginIcon from '@mui/icons-material/Login';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
 
 import { useAuth } from '@/contexts/AuthContext';
 
