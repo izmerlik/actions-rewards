@@ -2,13 +2,9 @@
 
 import DeleteIcon from '@mui/icons-material/Delete';
 import ReplayIcon from '@mui/icons-material/Replay';
-
 import { Button, IconButton, Paper, TextField, Tooltip, Typography } from '@mui/material';
-
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
-
 import { useState, useEffect, useCallback } from 'react';
-
 import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
 import { Reward } from '@/types';
