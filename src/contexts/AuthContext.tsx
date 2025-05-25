@@ -27,72 +27,121 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
-      if (firebaseUser) {
-        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-        if (userDoc.exists()) {
-          setUser(userDoc.data() as User);
-        } else {
-          const newUser: User = {
-            id: firebaseUser.uid,
-            email: firebaseUser.email!,
-            xp: 0,
-          };
-          await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
-          setUser(newUser);
+    try {
+      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+        try {
+          if (firebaseUser) {
+            const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+            if (userDoc.exists()) {
+              setUser(userDoc.data() as User);
+            } else {
+              const newUser: User = {
+                id: firebaseUser.uid,
+                email: firebaseUser.email!,
+                xp: 0,
+              };
+              await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
+              setUser(newUser);
+            }
+          } else {
+            setUser(null);
+          }
+        } catch (err) {
+          console.error('Error in auth state change:', err);
+          setError('Failed to load user data');
+        } finally {
+          setLoading(false);
         }
-      } else {
-        setUser(null);
-      }
-      setLoading(false);
-    });
+      });
 
-    return () => unsubscribe();
+      return () => unsubscribe();
+    } catch (err) {
+      console.error('Error setting up auth listener:', err);
+      setError('Failed to initialize authentication');
+      setLoading(false);
+    }
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+    try {
+      setError(null);
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+      console.error('Sign in error:', err);
+      setError('Failed to sign in');
+      throw err;
+    }
   };
 
   const signUp = async (email: string, password: string) => {
-    const result = await createUserWithEmailAndPassword(auth, email, password);
-    const newUser: User = {
-      id: result.user.uid,
-      email: result.user.email!,
-      xp: 0,
-    };
-    await setDoc(doc(db, 'users', result.user.uid), newUser);
-  };
-
-  const signOut = async () => {
-    await firebaseSignOut(auth);
-    setUser(null);
-  };
-
-  const googleSignIn = async () => {
-    const provider = new GoogleAuthProvider();
-    const result = await signInWithPopup(auth, provider);
-    const userDoc = await getDoc(doc(db, 'users', result.user.uid));
-    
-    if (!userDoc.exists()) {
+    try {
+      setError(null);
+      const result = await createUserWithEmailAndPassword(auth, email, password);
       const newUser: User = {
         id: result.user.uid,
         email: result.user.email!,
         xp: 0,
       };
       await setDoc(doc(db, 'users', result.user.uid), newUser);
+    } catch (err) {
+      console.error('Sign up error:', err);
+      setError('Failed to sign up');
+      throw err;
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      setError(null);
+      await firebaseSignOut(auth);
+      setUser(null);
+    } catch (err) {
+      console.error('Sign out error:', err);
+      setError('Failed to sign out');
+      throw err;
+    }
+  };
+
+  const googleSignIn = async () => {
+    try {
+      setError(null);
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const userDoc = await getDoc(doc(db, 'users', result.user.uid));
+      
+      if (!userDoc.exists()) {
+        const newUser: User = {
+          id: result.user.uid,
+          email: result.user.email!,
+          xp: 0,
+        };
+        await setDoc(doc(db, 'users', result.user.uid), newUser);
+      }
+    } catch (err) {
+      console.error('Google sign in error:', err);
+      setError('Failed to sign in with Google');
+      throw err;
+    }
+  };
+
+  const updateUserXP = (newXP: number) => {
+    if (user) {
+      setUser({ ...user, xp: newXP });
     }
   };
 
   const value: AuthContextType = {
     user,
     loading,
+    error,
     signIn,
     signUp,
     signOut,
     googleSignIn,
+    updateUserXP,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

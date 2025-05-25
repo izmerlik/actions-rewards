@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Reward } from '@/types';
 
 export default function Rewards() {
-  const { user } = useAuth();
+  const { user, updateUserXP } = useAuth();
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [newRewardTitle, setNewRewardTitle] = useState('');
   const [newRewardXPCost, setNewRewardXPCost] = useState('');
@@ -74,14 +74,17 @@ export default function Rewards() {
     try {
       const rewardRef = doc(db, 'rewards', reward.id);
       const userRef = doc(db, 'users', user.id);
+      const newXP = user.xp - reward.xpCost;
 
       await updateDoc(rewardRef, {
         redeemedAt: new Date(),
       });
 
       await updateDoc(userRef, {
-        xp: user.xp - reward.xpCost,
+        xp: newXP,
       });
+
+      updateUserXP(newXP);
 
       setRewards(rewards.map(r => 
         r.id === reward.id 

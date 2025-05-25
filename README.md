@@ -36,9 +36,9 @@ A web application that helps users track their actions and earn rewards based on
    NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
    ```
 4. Run the development server:
-   ```bash
-   npm run dev
-   ```
+```bash
+npm run dev
+```
 5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
 ## Project Structure

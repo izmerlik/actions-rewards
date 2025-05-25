@@ -1,14 +1,20 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Actions from '@/components/Actions';
 import Rewards from '@/components/Rewards';
 
+const TABS = [
+  { key: 'actions', label: 'Actions' },
+  { key: 'rewards', label: 'Rewards' },
+];
+
 export default function Dashboard() {
   const { user, loading, signOut } = useAuth();
   const router = useRouter();
+  const [selectedTab, setSelectedTab] = useState<'actions' | 'rewards'>('actions');
 
   useEffect(() => {
     if (!loading && !user) {
@@ -51,14 +57,38 @@ export default function Dashboard() {
       </nav>
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="rounded-lg bg-white p-6 shadow-lg">
-            <h2 className="mb-4 text-xl font-semibold text-gray-900">Actions</h2>
+        {/* Tabs for mobile */}
+        <div className="mb-4 flex md:hidden">
+          {TABS.map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setSelectedTab(tab.key as 'actions' | 'rewards')}
+              className={`flex-1 py-2 text-center rounded-t-lg font-semibold transition-colors
+                ${selectedTab === tab.key
+                  ? 'bg-indigo-600 text-white shadow'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Content */}
+        <div className="md:flex md:space-x-8">
+          {/* Actions */}
+          <div
+            className={
+              `md:w-1/2 ${selectedTab !== 'actions' ? 'hidden' : ''} md:block transition-all`
+            }
+          >
             <Actions />
           </div>
-
-          <div className="rounded-lg bg-white p-6 shadow-lg">
-            <h2 className="mb-4 text-xl font-semibold text-gray-900">Rewards</h2>
+          {/* Rewards */}
+          <div
+            className={
+              `md:w-1/2 ${selectedTab !== 'rewards' ? 'hidden' : ''} md:block transition-all`
+            }
+          >
             <Rewards />
           </div>
         </div>

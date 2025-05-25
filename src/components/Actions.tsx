@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Action } from '@/types';
 
 export default function Actions() {
-  const { user } = useAuth();
+  const { user, updateUserXP } = useAuth();
   const [actions, setActions] = useState<Action[]>([]);
   const [newActionTitle, setNewActionTitle] = useState('');
   const [newActionXP, setNewActionXP] = useState('');
@@ -75,10 +75,19 @@ export default function Actions() {
 
     try {
       const actionRef = doc(db, 'actions', action.id);
+      const userRef = doc(db, 'users', user.id);
+      const newXP = user.xp + action.xp;
+
       await updateDoc(actionRef, {
         completed: true,
         completedAt: new Date(),
       });
+
+      await updateDoc(userRef, {
+        xp: newXP,
+      });
+
+      updateUserXP(newXP);
 
       setActions(actions.map(a => 
         a.id === action.id 
@@ -87,6 +96,24 @@ export default function Actions() {
       ));
     } catch (error) {
       console.error('Error completing action:', error);
+    }
+  };
+
+  const handleRepeatAction = async (action: Action) => {
+    if (!user) return;
+    try {
+      const actionRef = doc(db, 'actions', action.id);
+      await updateDoc(actionRef, {
+        completed: false,
+        completedAt: null,
+      });
+      setActions(actions.map(a =>
+        a.id === action.id
+          ? { ...a, completed: false, completedAt: undefined }
+          : a
+      ));
+    } catch (error) {
+      console.error('Error repeating action:', error);
     }
   };
 
@@ -146,10 +173,17 @@ export default function Actions() {
               <p className="text-sm text-gray-500">{action.xp} XP</p>
             </div>
             <div className="flex space-x-2">
-              {!action.completed && (
+              {action.completed ? (
+                <button
+                  onClick={() => handleRepeatAction(action)}
+                  className="ml-2 rounded bg-yellow-500 px-3 py-1 text-white hover:bg-yellow-600"
+                >
+                  Repeat
+                </button>
+              ) : (
                 <button
                   onClick={() => handleCompleteAction(action)}
-                  className="rounded-md bg-green-600 px-3 py-1 text-sm font-semibold text-white hover:bg-green-500"
+                  className="ml-2 rounded bg-green-600 px-3 py-1 text-white hover:bg-green-700"
                 >
                   Complete
                 </button>
