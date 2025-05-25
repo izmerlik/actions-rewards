@@ -3,8 +3,8 @@
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { useState, useEffect, useCallback } from 'react';
 
-import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
+import { db } from '@/lib/firebase';
 import { Action } from '@/types';
 
 export default function Actions() {

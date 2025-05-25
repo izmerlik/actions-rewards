@@ -40,13 +40,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             if (userData) {
               setUser({
                 id: firebaseUser.uid,
-                email: firebaseUser.email || '',
+                email: firebaseUser.email ?? '',
                 xp: userData.xp || 0,
               });
             } else {
               const newUser: User = {
                 id: firebaseUser.uid,
-                email: firebaseUser.email!,
+                email: firebaseUser.email ?? '',
                 xp: 0,
               };
               await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
@@ -88,7 +88,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const result = await createUserWithEmailAndPassword(auth, email, password);
       const newUser: User = {
         id: result.user.uid,
-        email: result.user.email!,
+        email: result.user.email ?? '',
         xp: 0,
       };
       await setDoc(doc(db, 'users', result.user.uid), newUser);
@@ -121,7 +121,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (!userDoc.exists()) {
         const newUser: User = {
           id: result.user.uid,
-          email: result.user.email!,
+          email: result.user.email ?? '',
           xp: 0,
         };
         await setDoc(doc(db, 'users', result.user.uid), newUser);

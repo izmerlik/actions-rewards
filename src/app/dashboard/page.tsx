@@ -2,9 +2,10 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+
 import Actions from '@/components/Actions';
 import Rewards from '@/components/Rewards';
+import { useAuth } from '@/contexts/AuthContext';
 
 const TABS = [
   { key: 'actions', label: 'Actions' },
