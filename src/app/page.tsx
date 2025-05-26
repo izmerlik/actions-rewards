@@ -5,11 +5,20 @@ import PersonIcon from '@mui/icons-material/Person';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { Box, Button, CircularProgress, Container, Paper, Typography } from '@mui/material';
 import Link from 'next/link';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Home() {
   const { user, loading, error, guestSignIn } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user && user.isGuest) {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
 
   const handleGuestSignIn = async () => {
     try {
@@ -64,6 +73,10 @@ export default function Home() {
   }
 
   if (user) {
+    if (user.isGuest) {
+      // Don't show redirect message for guests, let useEffect handle redirect
+      return null;
+    }
     return (
       <Box
         sx={{

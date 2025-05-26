@@ -14,7 +14,35 @@
   }
 }
 
-body {
-  background: var(--background);
+html {
+  background: #f9fafb;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #f9fafb;
   color: var(--foreground);
+}
+
+@keyframes gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animated-gradient-bg {
+  background: linear-gradient(270deg, #4f46e5, #6366f1, #a5b4fc, #818cf8, #4f46e5);
+  background-size: 200% 200%;
+  animation: gradient-flow 12s ease-in-out infinite;
+}
+
+.flex.md\:hidden.items-center.justify-between.mb-4 {
+  border: 2px solid blue;
 }

@@ -48,6 +48,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 id: firebaseUser.uid,
                 email: firebaseUser.email ?? '',
                 xp: userData.xp || 0,
+                isGuest: firebaseUser.isAnonymous || userData.isGuest || false,
               });
             } else {
               console.log('AuthProvider: Creating new user data');
@@ -55,6 +56,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 id: firebaseUser.uid,
                 email: firebaseUser.email ?? '',
                 xp: 0,
+                isGuest: firebaseUser.isAnonymous || false,
               };
               await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
               setUser(newUser);

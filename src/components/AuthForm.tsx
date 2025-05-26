@@ -3,36 +3,49 @@
 import GoogleIcon from '@mui/icons-material/Google';
 import LoginIcon from '@mui/icons-material/Login';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { Alert, Box, Button, Container, Divider, Paper, TextField, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { useAuth } from '@/contexts/AuthContext';
 
-interface AuthFormProps {
-  mode: 'signin' | 'signup';
-}
+interface AuthFormProps {}
 
-export default function AuthForm({ mode }: AuthFormProps) {
+export default function AuthForm({}: AuthFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { signIn, signUp, googleSignIn } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
+    setLoading(true);
     try {
-      if (mode === 'signin') {
-        await signIn(email, password);
-      } else {
-        await signUp(email, password);
-      }
+      await signIn(email, password);
       router.push('/dashboard');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+    } catch (err: any) {
+      // If user not found, try to sign up
+      if (err && err.code === 'auth/user-not-found') {
+        try {
+          await signUp(email, password);
+          router.push('/dashboard');
+          return;
+        } catch (signupErr: any) {
+          setError(signupErr?.message || 'Sign up failed');
+        }
+      } else if (err && err.code === 'auth/wrong-password') {
+        setError('Incorrect password.');
+      } else if (err && err.code === 'auth/invalid-email') {
+        setError('Invalid email address.');
+      } else {
+        setError(err?.message || 'Sign in failed');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -66,13 +79,25 @@ export default function AuthForm({ mode }: AuthFormProps) {
             alignItems: 'center',
           }}
         >
+          <Button
+            startIcon={<ArrowBackIcon />}
+            variant="text"
+            onClick={() => {
+              if (window.history.length > 1) {
+                router.back();
+              } else {
+                router.push('/');
+              }
+            }}
+            sx={{ alignSelf: 'flex-start', mb: 2 }}
+          >
+            Go Back
+          </Button>
           <Typography variant="h4" component="h1" gutterBottom>
-            {mode === 'signin' ? 'Sign In' : 'Sign Up'}
+            Log In or Sign Up
           </Typography>
           <Typography variant="body1" color="text.secondary" gutterBottom>
-            {mode === 'signin'
-              ? 'Sign in to your account'
-              : 'Create your new account'}
+            Enter your email and password to log in or create a new account
           </Typography>
 
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3, width: '100%' }}>
@@ -93,6 +118,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
               autoFocus
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
             />
             <TextField
               margin="normal"
@@ -102,19 +128,21 @@ export default function AuthForm({ mode }: AuthFormProps) {
               label="Password"
               type="password"
               id="password"
-              autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
             />
 
             <Button
               type="submit"
               fullWidth
               variant="contained"
-              startIcon={mode === 'signin' ? <LoginIcon /> : <PersonAddIcon />}
+              startIcon={<LoginIcon />}
               sx={{ mt: 3, mb: 2 }}
+              disabled={loading}
             >
-              {mode === 'signin' ? 'Sign In' : 'Sign Up'}
+              {loading ? 'Processing...' : 'Continue'}
             </Button>
 
             <Divider sx={{ my: 2 }}>
@@ -128,6 +156,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
               variant="outlined"
               startIcon={<GoogleIcon />}
               onClick={handleGoogleSignIn}
+              disabled={loading}
             >
               Google
             </Button>

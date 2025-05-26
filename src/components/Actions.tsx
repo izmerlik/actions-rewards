@@ -141,7 +141,7 @@ export default function Actions() {
 
   return (
     <div className="space-y-4">
-      <Typography variant="h6" component="h2" sx={{ mb: 1, fontWeight: 600 }} className="hidden md:block">
+      <Typography variant="h6" component="h2" sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }} className="hidden md:block">
         Actions
       </Typography>
       <Paper sx={{ p: 2, backgroundColor: '#ECEFF7', borderRadius: 2, boxShadow: 'none' }}>

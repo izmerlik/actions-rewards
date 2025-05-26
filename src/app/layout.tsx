@@ -25,7 +25,7 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans antialiased`}>
         <ThemeRegistry>
           <AuthProvider>
-            <main className="min-h-screen bg-gray-50">
+            <main className="min-h-screen">
               {children}
             </main>
           </AuthProvider>
