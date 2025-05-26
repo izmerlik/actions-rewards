@@ -1,9 +1,9 @@
 'use client';
 
 import { Button, Paper, Tab, Tabs, Typography } from '@mui/material';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 
 import Actions from '@/components/Actions';
 import Rewards from '@/components/Rewards';

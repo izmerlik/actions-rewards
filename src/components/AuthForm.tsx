@@ -1,9 +1,8 @@
 'use client';
 
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import GoogleIcon from '@mui/icons-material/Google';
 import LoginIcon from '@mui/icons-material/Login';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { Alert, Box, Button, Container, Divider, Paper, TextField, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -27,22 +26,22 @@ export default function AuthForm({}: AuthFormProps) {
     try {
       await signIn(email, password);
       router.push('/dashboard');
-    } catch (err: any) {
+    } catch (err: unknown) {
       // If user not found, try to sign up
-      if (err && err.code === 'auth/user-not-found') {
+      if (err && typeof err === 'object' && 'code' in err && (err as any).code === 'auth/user-not-found') {
         try {
           await signUp(email, password);
           router.push('/dashboard');
           return;
-        } catch (signupErr: any) {
-          setError(signupErr?.message || 'Sign up failed');
+        } catch (signupErr: unknown) {
+          setError((signupErr as any)?.message || 'Sign up failed');
         }
-      } else if (err && err.code === 'auth/wrong-password') {
+      } else if (err && typeof err === 'object' && 'code' in err && (err as any).code === 'auth/wrong-password') {
         setError('Incorrect password.');
-      } else if (err && err.code === 'auth/invalid-email') {
+      } else if (err && typeof err === 'object' && 'code' in err && (err as any).code === 'auth/invalid-email') {
         setError('Invalid email address.');
       } else {
-        setError(err?.message || 'Sign in failed');
+        setError((err as any)?.message || 'Sign in failed');
       }
     } finally {
       setLoading(false);
