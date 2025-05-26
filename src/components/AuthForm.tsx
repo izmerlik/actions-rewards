@@ -11,6 +11,10 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface AuthFormProps {}
 
+function isAuthError(err: unknown): err is { code: string; message?: string } {
+  return typeof err === 'object' && err !== null && 'code' in err;
+}
+
 export default function AuthForm({}: AuthFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,20 +32,20 @@ export default function AuthForm({}: AuthFormProps) {
       router.push('/dashboard');
     } catch (err: unknown) {
       // If user not found, try to sign up
-      if (err && typeof err === 'object' && 'code' in err && (err as any).code === 'auth/user-not-found') {
+      if (isAuthError(err) && err.code === 'auth/user-not-found') {
         try {
           await signUp(email, password);
           router.push('/dashboard');
           return;
         } catch (signupErr: unknown) {
-          setError((signupErr as any)?.message || 'Sign up failed');
+          setError(isAuthError(signupErr) ? signupErr.message || 'Sign up failed' : 'Sign up failed');
         }
-      } else if (err && typeof err === 'object' && 'code' in err && (err as any).code === 'auth/wrong-password') {
+      } else if (isAuthError(err) && err.code === 'auth/wrong-password') {
         setError('Incorrect password.');
-      } else if (err && typeof err === 'object' && 'code' in err && (err as any).code === 'auth/invalid-email') {
+      } else if (isAuthError(err) && err.code === 'auth/invalid-email') {
         setError('Invalid email address.');
       } else {
-        setError((err as any)?.message || 'Sign in failed');
+        setError(isAuthError(err) ? err.message || 'Sign in failed' : 'Sign in failed');
       }
     } finally {
       setLoading(false);
