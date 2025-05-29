@@ -1,16 +1,14 @@
 'use client';
 
-import { Box, Button, Input, Heading, Text, FormControl, FormLabel, Icon, Stack, IconButton, Menu, MenuButton, MenuList, MenuItem, Tooltip } from '@chakra-ui/react';
-import { MdDelete, MdReplay, MdCardGiftcard, MdOutlinePanToolAlt } from 'react-icons/md';
+import { Box, Button, Input, Heading, Stack, Icon } from '@chakra-ui/react';
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { FiPlus, FiMoreVertical } from 'react-icons/fi';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import React, { useState, useEffect, useCallback } from 'react';
+import { FiPlus } from 'react-icons/fi';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
 import { Reward } from '@/types';
-import HandIcon from './HandIcon';
 import RewardCard from './RewardCard';
 
 export default function Rewards() {
