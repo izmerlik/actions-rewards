@@ -2,9 +2,9 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Box, IconButton, Menu, MenuButton, MenuList, MenuItem, Text, Tooltip } from '@chakra-ui/react';
 import { FiMoreVertical } from 'react-icons/fi';
 import { MdDelete, MdReplay } from 'react-icons/md';
-import HandIcon from './HandIcon';
 import { DraggableProvided, DraggableStateSnapshot } from '@hello-pangea/dnd';
 import { Reward } from '@/types';
+import HandIcon from './HandIcon';
 
 interface RewardCardProps {
   reward: Reward;
@@ -13,8 +13,8 @@ interface RewardCardProps {
   handleDeleteReward: (id: string) => void;
   handleRedeemReward: (reward: Reward) => void;
   handleRepeatReward: (reward: Reward) => void;
-  provided: DraggableProvided;
-  snapshot: DraggableStateSnapshot;
+  provided?: DraggableProvided;
+  snapshot?: DraggableStateSnapshot;
   isRedeemed?: boolean;
   userXP: number;
 }
@@ -46,14 +46,14 @@ const RewardCard: React.FC<RewardCardProps> = ({
 
   return (
     <Box
-      ref={provided.innerRef}
-      {...provided.draggableProps}
-      {...provided.dragHandleProps}
+      ref={provided?.innerRef}
+      {...(provided?.draggableProps || {})}
+      {...(provided?.dragHandleProps || {})}
       bg={isRedeemed ? 'transparent' : 'white'}
       borderRadius="16px"
       borderWidth={1}
       borderColor="gray.200"
-      boxShadow={isRedeemed ? 'none' : snapshot.isDragging ? 'xl' : 'sm'}
+      boxShadow={isRedeemed ? 'none' : snapshot?.isDragging ? 'xl' : 'sm'}
       transition="box-shadow 0.2s"
       display="flex"
       alignItems={isMultiLine ? 'flex-start' : 'center'}
