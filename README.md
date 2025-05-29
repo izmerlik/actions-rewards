@@ -36,6 +36,7 @@ A web application that helps users track their actions and earn rewards based on
    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
    NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+   HF_TOKEN=***REMOVED***wVucBFHnLslFiOmngSfJSTcAvfUBmvqCOz
    ```
 4. Run the development server:
 ```bash

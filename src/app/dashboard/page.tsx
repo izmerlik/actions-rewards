@@ -1,7 +1,6 @@
 'use client';
 
-import { Button, Paper, Tab, Tabs, Typography } from '@mui/material';
-import Link from 'next/link';
+import { Box, Button, Heading, Text, useBreakpointValue } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
@@ -10,144 +9,155 @@ import Rewards from '@/components/Rewards';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Dashboard() {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, signOut, guestSignIn } = useAuth();
   const router = useRouter();
   const [selectedTab, setSelectedTab] = useState(0);
+  const isMobile = useBreakpointValue({ base: true, md: false });
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/auth/signin');
-    }
-  }, [loading, user, router]);
+    const initializeUser = async () => {
+      if (!loading && !user) {
+        try {
+          await guestSignIn();
+        } catch (err) {
+          console.error('Failed to sign in as guest:', err);
+        }
+      }
+    };
+
+    initializeUser();
+  }, [loading, user, guestSignIn]);
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-indigo-600"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
+      <Box minH="100vh" display="flex" alignItems="center" justifyContent="center" bg="gray.50">
+        <Box textAlign="center">
+          <Box h={8} w={8} borderRadius="full" borderWidth={4} borderColor="gray.200" borderTopColor="purple.600" animation="spin 1s linear infinite" mx="auto" />
+          <Text mt={4} color="gray.600">Loading...</Text>
+        </Box>
+      </Box>
     );
   }
 
   if (!user) {
-    return null;
+    return (
+      <Box minH="100vh" display="flex" alignItems="center" justifyContent="center" bg="gray.50">
+        <Box textAlign="center">
+          <Box h={8} w={8} borderRadius="full" borderWidth={4} borderColor="gray.200" borderTopColor="purple.600" animation="spin 1s linear infinite" mx="auto" />
+          <Text mt={4} color="gray.600">Initializing...</Text>
+        </Box>
+      </Box>
+    );
   }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen">
+    <Box display={{ base: 'flex' }} flexDirection={{ base: 'column', lg: 'row' }} minH="100vh" bg="gray.50">
       {/* Sidebar for large screens */}
-      <aside className="hidden lg:flex lg:w-40 bg-white shadow-sm lg:h-screen lg:sticky lg:top-0 flex-shrink-0 flex-col justify-between items-start px-3 pt-2 border-r border-gray-200">
-        <div>
-          <Typography variant="h6" component="h2" sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }} style={{ marginTop: '-1px' }}>
-            {user.xp} XP
-          </Typography>
-        </div>
-        <div className="w-full mt-auto pb-4">
+      <Box display={{ base: 'none', lg: 'flex' }} w="40" bg="gray.50" boxShadow="sm" h="100vh" position="sticky" top={0} flexShrink={0} flexDirection="column" justifyContent="space-between" alignItems="flex-start" px={3} pt={2} borderRightWidth={1} borderColor="gray.200">
+        <Box>
+          <Heading as="h2" size="md" fontWeight={600} color="gray.800" mb={1} mt={-1}>{user.xp} XP</Heading>
+        </Box>
+        <Box w="full" mt="auto" pb={4}>
           {user.isGuest ? (
             <Button
-              variant="outlined"
-              color="primary"
-              component={Link}
-              href="/auth/signin"
-              fullWidth
-              size="small"
+              variant="outline"
+              colorScheme="purple"
+              w="full"
+              size="sm"
+              onClick={() => router.push('/auth/signin')}
             >
               Log In
             </Button>
           ) : (
             <Button
-              variant="outlined"
-              color="primary"
+              variant="outline"
+              colorScheme="purple"
               onClick={signOut}
-              fullWidth
-              size="small"
+              w="full"
+              size="sm"
             >
               Sign Out
             </Button>
           )}
-        </div>
-      </aside>
+        </Box>
+      </Box>
       {/* Main content */}
-      <main className="flex-1 px-4 pt-2 pb-6 sm:px-6 lg:px-8 bg-gray-50 min-h-screen relative">
+      <Box flex={1} px={12} pt={2} pb={6} bg="gray.50" minH="100vh" position="relative">
         {/* Fixed header for all screens below lg */}
-        <div className="fixed top-0 left-0 w-full z-10 bg-white border-b border-gray-200 flex items-center justify-between px-4 h-14 lg:hidden">
-          <Typography variant="h6" component="h2" sx={{ fontWeight: 600, color: 'text.primary' }}>
-            {user.xp} XP
-          </Typography>
+        <Box display={{ base: 'flex', lg: 'none' }} position="fixed" top={0} left={0} w="full" zIndex={10} bg="gray.50" borderBottomWidth={1} borderColor="gray.200" alignItems="center" justifyContent="space-between" px={4} h={14}>
+          <Heading as="h2" size="md" fontWeight={600} color="gray.800">{user.xp} XP</Heading>
           {user.isGuest ? (
             <Button
-              variant="outlined"
-              color="primary"
-              component={Link}
-              href="/auth/signin"
-              size="small"
+              variant="outline"
+              colorScheme="purple"
+              size="sm"
+              onClick={() => router.push('/auth/signin')}
             >
               Log In
             </Button>
           ) : (
             <Button
-              variant="outlined"
-              color="primary"
+              variant="outline"
+              colorScheme="purple"
               onClick={signOut}
-              size="small"
+              size="sm"
             >
               Sign Out
             </Button>
           )}
-        </div>
+        </Box>
         {/* Add top padding to main content for all screens below lg to avoid overlap with fixed header */}
-        <div className="block lg:hidden" style={{ height: '56px' }} />
+        <Box display={{ base: 'block', lg: 'none' }} h="56px" />
         {/* Tabs for mobile only (below md) */}
-        <Paper elevation={0} sx={{ borderRadius: 2, mb: 3, background: 'transparent' }} className="block md:hidden">
-          <Tabs
-            value={selectedTab}
-            onChange={(_, newValue) => setSelectedTab(newValue)}
-            variant="fullWidth"
-            TabIndicatorProps={{
-              style: { height: 4, borderRadius: 2, background: '#4f46e5' }
-            }}
-            sx={{
-              minHeight: 48,
-              '& .MuiTab-root': {
-                fontWeight: 600,
-                fontSize: 18,
-                minHeight: 48,
-                borderRadius: 2,
-              },
-              '& .Mui-selected': {
-                color: '#4f46e5',
-                background: '#f3f4f6',
-              },
-              '& .MuiTabs-flexContainer': {
-                gap: 2,
-              },
-            }}
-          >
-            <Tab label="Actions" />
-            <Tab label="Rewards" />
-          </Tabs>
-        </Paper>
-        {/* 2 columns for md and up */}
-        <div className="hidden md:flex md:space-x-4">
-          <div style={{ width: '100%' }}>
-            <Actions />
-          </div>
-          <div style={{ width: '100%' }}>
-            <Rewards />
-          </div>
-        </div>
-        {/* 1 column with tabs for mobile */}
-        <div className="md:hidden">
-          <div className={selectedTab === 0 ? '' : 'hidden'} style={{ width: '100%' }}>
-            <Actions />
-          </div>
-          <div className={selectedTab === 1 ? '' : 'hidden'} style={{ width: '100%' }}>
-            <Rewards />
-          </div>
-        </div>
-      </main>
-    </div>
+        {isMobile ? (
+          <>
+            <Box display="flex" mb={3} borderRadius={8} bg="white" borderWidth={1} borderColor="gray.200" overflow="hidden" w="fit-content" boxShadow="sm">
+              <button
+                type="button"
+                style={{
+                  fontWeight: 600,
+                  fontSize: 18,
+                  borderRadius: 2,
+                  background: selectedTab === 0 ? '#f3f4f6' : 'transparent',
+                  color: selectedTab === 0 ? '#4f46e5' : undefined,
+                  padding: '8px 16px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  transition: 'background 0.2s',
+                }}
+                onClick={() => setSelectedTab(0)}
+              >
+                Actions
+              </button>
+              <button
+                type="button"
+                style={{
+                  fontWeight: 600,
+                  fontSize: 18,
+                  borderRadius: 2,
+                  background: selectedTab === 1 ? '#f3f4f6' : 'transparent',
+                  color: selectedTab === 1 ? '#4f46e5' : undefined,
+                  padding: '8px 16px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  transition: 'background 0.2s',
+                }}
+                onClick={() => setSelectedTab(1)}
+              >
+                Rewards
+              </button>
+            </Box>
+            {selectedTab === 0 ? <Actions /> : <Rewards />}
+          </>
+        ) : (
+          <Box display={{ base: 'none', md: 'flex' }} gap={12} justifyContent="center" alignItems="start">
+            <Box w="full" maxW="420px"><Actions /></Box>
+            <Box w="full" maxW="420px"><Rewards /></Box>
+          </Box>
+        )}
+      </Box>
+    </Box>
   );
 } 

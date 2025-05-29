@@ -1,9 +1,6 @@
 'use client';
 
-import LoginIcon from '@mui/icons-material/Login';
-import PersonIcon from '@mui/icons-material/Person';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import { Box, Button, CircularProgress, Container, Paper, Typography } from '@mui/material';
+import { Box, Button, Text, Spinner } from '@chakra-ui/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -15,34 +12,28 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    if (user && user.isGuest) {
-      router.push('/dashboard');
-    }
-  }, [user, router]);
+    const initializeUser = async () => {
+      if (!loading) {
+        if (!user) {
+          try {
+            await guestSignIn();
+          } catch (err) {
+            console.error('Failed to sign in as guest:', err);
+          }
+        }
+        router.push('/dashboard');
+      }
+    };
 
-  const handleGuestSignIn = async () => {
-    try {
-      await guestSignIn();
-    } catch (err) {
-      console.error('Guest sign in error:', err);
-    }
-  };
+    initializeUser();
+  }, [loading, user, guestSignIn, router]);
 
   if (loading) {
     return (
-      <Box
-        sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Box sx={{ textAlign: 'center' }}>
-          <CircularProgress />
-          <Typography variant="body1" sx={{ mt: 2, color: 'text.secondary' }}>
-            Loading...
-          </Typography>
+      <Box minH="100vh" display="flex" alignItems="center" justifyContent="center" bg="gray.50">
+        <Box textAlign="center">
+          <Spinner size="xl" color="purple.500" />
+          <Text mt={4} color="gray.600">Loading...</Text>
         </Box>
       </Box>
     );
@@ -50,20 +41,13 @@ export default function Home() {
 
   if (error) {
     return (
-      <Box
-        sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography color="error">Error: {error}</Typography>
+      <Box minH="100vh" display="flex" alignItems="center" justifyContent="center">
+        <Box textAlign="center">
+          <Text color="red.500">Error: {error}</Text>
           <Button
-            variant="contained"
+            colorScheme="purple"
             onClick={() => window.location.reload()}
-            sx={{ mt: 2 }}
+            mt={4}
           >
             Retry
           </Button>
@@ -78,90 +62,18 @@ export default function Home() {
       return null;
     }
     return (
-      <Box
-        sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography variant="body1" color="text.secondary">
-            Redirecting to dashboard...
-          </Typography>
-          <Button
-            component={Link}
-            href="/dashboard"
-            variant="contained"
-            sx={{ mt: 2 }}
-          >
-            Go to Dashboard
-          </Button>
+      <Box minH="100vh" display="flex" alignItems="center" justifyContent="center">
+        <Box textAlign="center">
+          <Text color="gray.600">Redirecting to dashboard...</Text>
+          <Link href="/dashboard">
+            <Button colorScheme="purple" mt={4}>
+              Go to Dashboard
+            </Button>
+          </Link>
         </Box>
       </Box>
     );
   }
 
-  return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        p: 2,
-      }}
-    >
-      <Container maxWidth="sm">
-        <Paper
-          elevation={3}
-          sx={{
-            p: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
-          <Typography variant="h4" component="h1" gutterBottom>
-            Actions & Rewards
-          </Typography>
-          <Typography variant="body1" color="text.secondary" gutterBottom>
-            Track your actions and earn rewards
-          </Typography>
-
-          <Box sx={{ mt: 4, width: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Button
-              component={Link}
-              href="/auth/signin"
-              variant="contained"
-              fullWidth
-              startIcon={<LoginIcon />}
-            >
-              Sign In
-            </Button>
-            <Button
-              component={Link}
-              href="/auth/signup"
-              variant="outlined"
-              fullWidth
-              startIcon={<PersonAddIcon />}
-            >
-              Sign Up
-            </Button>
-            <Button
-              variant="outlined"
-              fullWidth
-              startIcon={<PersonIcon />}
-              onClick={handleGuestSignIn}
-              sx={{ mt: 1 }}
-            >
-              Continue as Guest
-            </Button>
-          </Box>
-        </Paper>
-      </Container>
-    </Box>
-  );
+  return null;
 }
