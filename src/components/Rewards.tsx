@@ -1,10 +1,10 @@
 'use client';
 
 import { Box, Button, Input, Heading, Stack, Icon } from '@chakra-ui/react';
-import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import React, { useState, useEffect, useCallback } from 'react';
 import { FiPlus } from 'react-icons/fi';
+import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
