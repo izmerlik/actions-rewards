@@ -1,14 +1,16 @@
 'use client';
 
-import DeleteIcon from '@mui/icons-material/Delete';
-import ReplayIcon from '@mui/icons-material/Replay';
-import { Button, IconButton, Paper, TextField, Tooltip, Typography } from '@mui/material';
+import { Box, Button, Input, Heading, Icon, Stack } from '@chakra-ui/react';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { useState, useEffect, useCallback } from 'react';
+import { FiPlus } from 'react-icons/fi';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
 import { Action } from '@/types';
+
+import ActionCard from './ActionCard';
 
 export default function Actions() {
   const { user, updateUserXP } = useAuth();
@@ -16,6 +18,7 @@ export default function Actions() {
   const [newActionTitle, setNewActionTitle] = useState('');
   const [newActionXP, setNewActionXP] = useState('');
   const [loading, setLoading] = useState(true);
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
 
   const fetchActions = useCallback(async () => {
     if (!user) return;
@@ -122,6 +125,8 @@ export default function Actions() {
   };
 
   const handleDeleteAction = async (actionId: string) => {
+    console.log('Delete pressed for action:', actionId);
+    setMenuOpenId(null);
     try {
       await deleteDoc(doc(db, 'actions', actionId));
       setActions(actions.filter(a => a.id !== actionId));
@@ -135,118 +140,136 @@ export default function Actions() {
     return a.completed ? 1 : -1;
   });
 
+  // Helper to reorder array
+  function reorder(list: Action[], startIndex: number, endIndex: number): Action[] {
+    const result = Array.from(list);
+    const [removed] = result.splice(startIndex, 1);
+    result.splice(endIndex, 0, removed);
+    return result;
+  }
+
+  // Only reorder active (not completed) cards
+  const activeActions = sortedActions.filter(a => !a.completed);
+  const completedActions = sortedActions.filter(a => a.completed);
+
+  function onDragEnd(result: DropResult) {
+    if (!result.destination) return;
+    const reordered = reorder(activeActions, result.source.index, result.destination.index);
+    setActions([
+      ...reordered,
+      ...completedActions,
+    ]);
+  }
+
   if (loading) {
-    return <div className="text-center">Loading actions...</div>;
+    return <Box textAlign="center">Loading actions...</Box>;
   }
 
   return (
-    <div className="space-y-4">
-      <Typography variant="h6" component="h2" sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }} className="hidden md:block">
+    <Box className="space-y-4">
+      <Heading as="h2" size="lg" fontWeight={600} color="gray.800" mb={1} mt={6} display={{ base: 'none', md: 'block' }}>
         Actions
-      </Typography>
-      <Paper sx={{ p: 2, backgroundColor: '#ECEFF7', borderRadius: 2, boxShadow: 'none' }}>
-        <form onSubmit={handleAddAction} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <TextField
-            label="Action title"
-            value={newActionTitle}
-            onChange={(e) => setNewActionTitle(e.target.value)}
-            fullWidth
-            required
-            margin="dense"
-            size="small"
-            InputLabelProps={{ required: false }}
-            sx={{
-              '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#4f46e5',
-              },
-            }}
-          />
-          <TextField
-            label="XP value"
-            type="number"
-            value={newActionXP}
-            onChange={(e) => setNewActionXP(e.target.value)}
-            fullWidth
-            required
-            margin="dense"
-            inputProps={{ min: 1 }}
-            size="small"
-            InputLabelProps={{ required: false }}
-            sx={{
-              '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#4f46e5',
-              },
-            }}
-          />
-          <Button
-            type="submit"
-            variant="text"
-            color="primary"
-            fullWidth
-            size="medium"
-            sx={{ mt: 0.5, fontSize: '0.9375rem', fontWeight: 600 }}
-          >
-            Add Action
-          </Button>
+      </Heading>
+      <Box bg="white" p={5} borderRadius="16px" borderWidth={1} borderColor="gray.200" boxShadow="sm" mb={12}>
+        <Heading as="h3" size="sm" fontWeight={600} color="gray.800" mb={4}>Add new action</Heading>
+        <form onSubmit={handleAddAction} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <Box display={{ base: 'block', md: 'flex' }} gap={2} alignItems="center">
+            <Input
+              id="action-title"
+              placeholder="Name"
+              value={newActionTitle}
+              onChange={(e) => setNewActionTitle(e.target.value)}
+              required
+              size="md"
+              mb={{ base: 2, md: 0 }}
+              fontSize="md"
+              borderRadius="8px"
+              px={3}
+              h="48px"
+              _placeholder={{ color: 'gray.400', fontSize: 'md' }}
+              flex={2}
+            />
+            <Input
+              id="action-xp"
+              placeholder="XP"
+              type="number"
+              value={newActionXP}
+              onChange={(e) => setNewActionXP(e.target.value)}
+              required
+              min={1}
+              size="md"
+              fontSize="md"
+              borderRadius="8px"
+              px={3}
+              h="48px"
+              _placeholder={{ color: 'gray.400', fontSize: 'md' }}
+              flex={1}
+            />
+            <Button
+              type="submit"
+              bg="black"
+              color="white"
+              borderRadius="8px"
+              w="48px"
+              h="48px"
+              minW="48px"
+              minH="48px"
+              flex="none"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              _hover={{ bg: 'gray.800' }}
+              _active={{ bg: 'gray.900' }}
+              mt={{ base: 2, md: 0 }}
+            >
+              <Icon as={FiPlus} w={5} h={5} />
+            </Button>
+          </Box>
         </form>
-      </Paper>
-      {sortedActions.map((action) => (
-        <Paper
-          key={action.id}
-          elevation={!action.completed ? 1 : 0}
-          variant={action.completed ? 'outlined' : undefined}
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            p: 2,
-            backgroundColor: !action.completed ? '#fff' : 'transparent',
-            borderRadius: 2,
-            boxShadow: !action.completed ? undefined : 'none',
-          }}
-        >
-          <div>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, color: action.completed ? 'text.secondary' : 'text.primary' }}
-            >
-              {action.title}
-            </Typography>
-            <p className="text-sm text-gray-500">{action.xp} XP</p>
-          </div>
-          <div className="flex space-x-2">
-            {action.completed ? (
-              <Tooltip title="Repeat">
-                <IconButton
-                  onClick={() => handleRepeatAction(action)}
-                  color="default"
-                  aria-label="repeat"
-                  sx={{ ml: 1 }}
-                >
-                  <ReplayIcon />
-                </IconButton>
-              </Tooltip>
-            ) : (
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => handleCompleteAction(action)}
-                sx={{ ml: 2 }}
-              >
-                Complete
-              </Button>
-            )}
-            <IconButton
-              onClick={() => handleDeleteAction(action.id)}
-              color="default"
-              sx={{ ml: 1 }}
-              aria-label="delete"
-            >
-              <DeleteIcon />
-            </IconButton>
-          </div>
-        </Paper>
-      ))}
-    </div>
+      </Box>
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="actions-droppable">
+          {(provided) => (
+            <Stack spacing={3} mt={8} ref={provided.innerRef} {...provided.droppableProps}>
+              {activeActions.map((action) => (
+                <Draggable key={action.id} draggableId={action.id} index={activeActions.findIndex(a => a.id === action.id)}>
+                  {(provided, snapshot) => (
+                    <ActionCard
+                      action={action}
+                      menuOpenId={menuOpenId}
+                      setMenuOpenId={setMenuOpenId}
+                      handleDeleteAction={handleDeleteAction}
+                      handleCompleteAction={handleCompleteAction}
+                      handleRepeatAction={handleRepeatAction}
+                      provided={provided}
+                      snapshot={snapshot}
+                    />
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+              {/* Completed actions below, not draggable */}
+              {completedActions.map((action) => (
+                <Draggable key={action.id} draggableId={action.id} index={completedActions.findIndex(a => a.id === action.id)}>
+                  {(provided, snapshot) => (
+                    <ActionCard
+                      action={action}
+                      menuOpenId={menuOpenId}
+                      setMenuOpenId={setMenuOpenId}
+                      handleDeleteAction={handleDeleteAction}
+                      handleCompleteAction={handleCompleteAction}
+                      handleRepeatAction={handleRepeatAction}
+                      provided={provided}
+                      snapshot={snapshot}
+                      isCompleted
+                    />
+                  )}
+                </Draggable>
+              ))}
+            </Stack>
+          )}
+        </Droppable>
+      </DragDropContext>
+    </Box>
   );
 } 

@@ -1,11 +1,10 @@
 'use client';
 
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import GoogleIcon from '@mui/icons-material/Google';
-import LoginIcon from '@mui/icons-material/Login';
-import { Alert, Box, Button, Container, Divider, Paper, TextField, Typography } from '@mui/material';
+import { Box, Button, Input, Heading, Text, Container, Flex } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { FcGoogle } from 'react-icons/fc';
+import { MdArrowBack, MdLogin } from 'react-icons/md';
 
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -62,29 +61,13 @@ export default function AuthForm({}: AuthFormProps) {
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        p: 2,
-      }}
-    >
-      <Container maxWidth="sm">
-        <Paper
-          elevation={3}
-          sx={{
-            p: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
+    <Flex minH="100vh" align="center" justify="center" p={2} direction="column">
+      <Container maxW="sm">
+        <Box bg="white" p={8} borderRadius={8} boxShadow="md" display="flex" flexDirection="column" alignItems="center">
           <Button
-            startIcon={<ArrowBackIcon />}
-            variant="text"
+            variant="ghost"
+            alignSelf="flex-start"
+            mb={2}
             onClick={() => {
               if (window.history.length > 1) {
                 router.back();
@@ -92,80 +75,69 @@ export default function AuthForm({}: AuthFormProps) {
                 router.push('/');
               }
             }}
-            sx={{ alignSelf: 'flex-start', mb: 2 }}
           >
-            Go Back
+            <MdArrowBack style={{ marginRight: 8 }} /> Go Back
           </Button>
-          <Typography variant="h4" component="h1" gutterBottom>
+          <Heading as="h1" size="lg" mb={2} textAlign="center">
             Log In or Sign Up
-          </Typography>
-          <Typography variant="body1" color="text.secondary" gutterBottom>
+          </Heading>
+          <Text color="gray.600" mb={4} textAlign="center">
             Enter your email and password to log in or create a new account
-          </Typography>
+          </Text>
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3, width: '100%' }}>
+          <Box as="form" onSubmit={handleSubmit} mt={3} w="100%">
             {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
+              <Box bg="red.100" color="red.700" p={3} mb={4} borderRadius={6} fontWeight={500} textAlign="center">
                 {error}
-              </Alert>
+              </Box>
             )}
 
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="email"
-              label="Email Address"
-              name="email"
-              autoComplete="email"
-              autoFocus
+            <Input
+              type="email"
+              placeholder="Email Address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              mb={3}
               disabled={loading}
-            />
-            <TextField
-              margin="normal"
               required
-              fullWidth
-              name="password"
-              label="Password"
+              autoFocus
+            />
+            <Input
               type="password"
-              id="password"
-              autoComplete="current-password"
+              placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              mb={3}
               disabled={loading}
+              required
             />
 
             <Button
               type="submit"
-              fullWidth
-              variant="contained"
-              startIcon={<LoginIcon />}
-              sx={{ mt: 3, mb: 2 }}
+              w="100%"
+              colorScheme="purple"
+              mb={3}
               disabled={loading}
             >
-              {loading ? 'Processing...' : 'Continue'}
+              <MdLogin style={{ marginRight: 8 }} /> Continue
             </Button>
 
-            <Divider sx={{ my: 2 }}>
-              <Typography variant="body2" color="text.secondary">
-                Or continue with
-              </Typography>
-            </Divider>
+            <Box my={4} borderBottom="1px solid #e2e8f0" />
+            <Text fontSize="sm" color="gray.500" textAlign="center" mb={2}>
+              Or continue with
+            </Text>
 
             <Button
-              fullWidth
-              variant="outlined"
-              startIcon={<GoogleIcon />}
+              w="100%"
+              variant="outline"
               onClick={handleGoogleSignIn}
               disabled={loading}
             >
-              Google
+              <FcGoogle style={{ marginRight: 8 }} /> Google
             </Button>
           </Box>
-        </Paper>
+        </Box>
       </Container>
-    </Box>
+    </Flex>
   );
 } 
