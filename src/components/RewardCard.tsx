@@ -1,9 +1,11 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Box, IconButton, Menu, MenuButton, MenuList, MenuItem, Text, Tooltip } from '@chakra-ui/react';
+import { DraggableProvided, DraggableStateSnapshot } from '@hello-pangea/dnd';
 import { FiMoreVertical } from 'react-icons/fi';
 import { MdDelete, MdReplay } from 'react-icons/md';
-import { DraggableProvided, DraggableStateSnapshot } from '@hello-pangea/dnd';
+
 import { Reward } from '@/types';
+
 import HandIcon from './HandIcon';
 
 interface RewardCardProps {
