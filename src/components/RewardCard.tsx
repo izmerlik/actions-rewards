@@ -1,12 +1,10 @@
-import { Box, IconButton, Menu, MenuButton, MenuList, MenuItem, Text, Tooltip } from '@chakra-ui/react';
+import { Box, IconButton, Menu, MenuButton, MenuList, MenuItem, Text, Tooltip, Input } from '@chakra-ui/react';
 import { DraggableProvided, DraggableStateSnapshot } from '@hello-pangea/dnd';
 import React, { useRef, useEffect, useState } from 'react';
-import { FiMoreVertical } from 'react-icons/fi';
-import { MdDelete, MdReplay } from 'react-icons/md';
+import { FiMoreVertical, FiX, FiSave } from 'react-icons/fi';
+import { MdDelete, MdReplay, MdStarOutline } from 'react-icons/md';
 
 import { Reward } from '@/types';
-
-import HandIcon from './HandIcon';
 
 interface RewardCardProps {
   reward: Reward;
@@ -15,6 +13,7 @@ interface RewardCardProps {
   handleDeleteReward: (id: string) => void;
   handleRedeemReward: (reward: Reward) => void;
   handleRepeatReward: (reward: Reward) => void;
+  handleEditReward: (id: string, title: string, xpCost: number) => void;
   provided?: DraggableProvided;
   snapshot?: DraggableStateSnapshot;
   isRedeemed?: boolean;
@@ -28,12 +27,16 @@ const RewardCard: React.FC<RewardCardProps> = ({
   handleDeleteReward,
   handleRedeemReward,
   handleRepeatReward,
+  handleEditReward,
   provided,
   snapshot,
   isRedeemed = false,
   userXP,
 }) => {
   const [isMultiLine, setIsMultiLine] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(reward.title);
+  const [editXP, setEditXP] = useState(reward.xpCost.toString());
   const nameRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (nameRef.current) {
@@ -43,6 +46,28 @@ const RewardCard: React.FC<RewardCardProps> = ({
       setIsMultiLine(!isSingleLine);
     }
   }, [reward.title]);
+
+  useEffect(() => {
+    setEditTitle(reward.title);
+    setEditXP(reward.xpCost.toString());
+  }, [reward.title, reward.xpCost]);
+
+  const handleEditClick = () => {
+    setIsEditing(true);
+    setMenuOpenId(null);
+  };
+
+  const handleEditSave = () => {
+    if (!editTitle.trim() || isNaN(Number(editXP)) || Number(editXP) <= 0) return;
+    handleEditReward(reward.id, editTitle.trim(), Number(editXP));
+    setIsEditing(false);
+  };
+
+  const handleEditCancel = () => {
+    setIsEditing(false);
+    setEditTitle(reward.title);
+    setEditXP(reward.xpCost.toString());
+  };
 
   const notEnoughXP = !isRedeemed && userXP < reward.xpCost;
 
@@ -113,7 +138,6 @@ const RewardCard: React.FC<RewardCardProps> = ({
           />
           <MenuList boxShadow="2xl" borderRadius="16px" zIndex={1400}>
             <MenuItem 
-              icon={<MdDelete />} 
               onClick={() => {
                 setMenuOpenId(null);
                 handleDeleteReward(reward.id);
@@ -129,15 +153,89 @@ const RewardCard: React.FC<RewardCardProps> = ({
             >
               Delete
             </MenuItem>
+            {!isRedeemed && <MenuItem onClick={handleEditClick}>Edit</MenuItem>}
           </MenuList>
         </Menu>
       </Box>
       <Box flex={1} minW={0} display="flex" alignItems={isMultiLine ? 'flex-start' : 'center'} justifyContent="space-between" gap={4} ml={4}>
         <Box minW={0} flex={1} ref={nameRef}>
-          <Text fontWeight={600} color={isRedeemed ? 'gray.400' : 'gray.800'} noOfLines={2}>
-            {reward.title}
-          </Text>
-          <Text fontSize="sm" color={isRedeemed ? 'gray.400' : 'gray.500'}>{reward.xpCost} XP</Text>
+          {isEditing ? (
+            <Box display="flex" flexDirection={{ base: 'column', md: 'row' }} gap={2} alignItems={{ base: 'stretch', md: 'center' }} w="100%" justifyContent="space-between">
+              <Input
+                value={editTitle}
+                onChange={e => setEditTitle(e.target.value)}
+                size="md"
+                fontWeight={600}
+                color="gray.800"
+                borderRadius="8px"
+                px={3}
+                h="48px"
+                fontSize="md"
+                _placeholder={{ color: 'gray.400', fontSize: 'md' }}
+                flex={2}
+                mb={{ base: 2, md: 0 }}
+                placeholder="Name"
+                autoFocus
+              />
+              <Input
+                value={editXP}
+                onChange={e => setEditXP(e.target.value.replace(/[^0-9]/g, ''))}
+                size="md"
+                fontWeight={600}
+                color="gray.800"
+                borderRadius="8px"
+                px={3}
+                h="48px"
+                fontSize="md"
+                _placeholder={{ color: 'gray.400', fontSize: 'md' }}
+                type="number"
+                min={1}
+                flex={1}
+                mb={{ base: 2, md: 0 }}
+                placeholder="XP"
+              />
+              <Box display="flex" gap={0}>
+                <IconButton
+                  aria-label="Cancel"
+                  icon={<FiX size={24} />}
+                  size="md"
+                  variant="unstyled"
+                  onClick={handleEditCancel}
+                  borderRadius="8px"
+                  h="48px"
+                  w="48px"
+                  minW="48px"
+                  minH="48px"
+                  flexShrink={0}
+                  color="gray.400"
+                  _hover={{ color: 'gray.600', bg: 'transparent' }}
+                />
+                <IconButton
+                  aria-label="Save"
+                  icon={<FiSave size={22} color="white" />}
+                  size="md"
+                  bg="black"
+                  color="white"
+                  _hover={{ bg: 'gray.800' }}
+                  _active={{ bg: 'gray.900' }}
+                  borderRadius="8px"
+                  h="48px"
+                  w="48px"
+                  minW="48px"
+                  minH="48px"
+                  onClick={handleEditSave}
+                  flexShrink={0}
+                />
+              </Box>
+            </Box>
+          ) : (
+            <>
+              <Text fontWeight={600} color={isRedeemed ? 'gray.400' : 'gray.800'} noOfLines={2}>
+                {reward.title}
+              </Text>
+              <Text fontSize="sm" color={isRedeemed ? 'gray.400' : 'gray.500'}>{reward.xpCost} XP</Text>
+            </>
+          )}
         </Box>
         {isRedeemed ? (
           <IconButton
@@ -151,20 +249,22 @@ const RewardCard: React.FC<RewardCardProps> = ({
             flex="none"
           />
         ) : (
-          <Tooltip label={notEnoughXP ? 'Not enough XP' : ''} isDisabled={!notEnoughXP} placement="top">
-            <Box pointerEvents={notEnoughXP ? 'none' : 'auto'} sx={{ display: 'flex' }}>
-              <IconButton
-                aria-label="Redeem"
-                icon={<HandIcon />}
-                variant="outline"
-                borderColor="gray.200"
-                onClick={() => !notEnoughXP && handleRedeemReward(reward)}
-                sx={{ width: '48px', height: '48px', minWidth: '48px', minHeight: '48px', borderRadius: '8px' }}
-                flexShrink={0}
-                flex="none"
-              />
-            </Box>
-          </Tooltip>
+          !isEditing && (
+            <Tooltip label={notEnoughXP ? 'Not enough XP' : ''} isDisabled={!notEnoughXP} placement="top">
+              <Box pointerEvents={notEnoughXP ? 'none' : 'auto'} sx={{ display: 'flex' }}>
+                <IconButton
+                  aria-label="Redeem"
+                  icon={<MdStarOutline size={24} color="black" />}
+                  variant="outline"
+                  borderColor="gray.200"
+                  onClick={() => !notEnoughXP && handleRedeemReward(reward)}
+                  sx={{ width: '48px', height: '48px', minWidth: '48px', minHeight: '48px', borderRadius: '8px' }}
+                  flexShrink={0}
+                  flex="none"
+                />
+              </Box>
+            </Tooltip>
+          )
         )}
       </Box>
     </Box>

@@ -131,6 +131,17 @@ export default function Rewards() {
     }
   };
 
+  const handleEditReward = async (id: string, title: string, xpCost: number) => {
+    if (!user) return;
+    try {
+      const rewardRef = doc(db, 'rewards', id);
+      await updateDoc(rewardRef, { title, xpCost });
+      setRewards(rewards.map(r => r.id === id ? { ...r, title, xpCost } : r));
+    } catch (error) {
+      console.error('Error editing reward:', error);
+    }
+  };
+
   const sortedRewards = [...rewards].sort((a, b) => {
     if (!!a.redeemedAt === !!b.redeemedAt) return 0;
     return a.redeemedAt ? 1 : -1;
@@ -158,12 +169,12 @@ export default function Rewards() {
   }
 
   if (loading) {
-    return <Box textAlign="center">Loading rewards...</Box>;
+    return null;
   }
 
   return (
     <Box className="space-y-4">
-      <Heading as="h2" size="lg" fontWeight={600} color="gray.800" mb={1} mt={6} display={{ base: 'none', md: 'block' }}>
+      <Heading as="h2" size="md" fontWeight={600} color="gray.800" mb={1} mt={6} display={{ base: 'none', md: 'block' }}>
         Rewards
       </Heading>
       <Box bg="white" p={5} borderRadius="16px" borderWidth={1} borderColor="gray.200" boxShadow="sm" mb={12}>
@@ -201,25 +212,25 @@ export default function Rewards() {
               _placeholder={{ color: 'gray.400', fontSize: 'md' }}
               flex={1}
             />
-            <Button
-              type="submit"
-              bg="black"
-              color="white"
-              borderRadius="8px"
-              w="48px"
-              h="48px"
-              minW="48px"
-              minH="48px"
-              flex="none"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              _hover={{ bg: 'gray.800' }}
-              _active={{ bg: 'gray.900' }}
-              mt={{ base: 2, md: 0 }}
-            >
-              <Icon as={FiPlus} w={5} h={5} />
-            </Button>
+          <Button
+            type="submit"
+            bg="black"
+            color="white"
+            borderRadius="8px"
+            w={{ base: 'full', md: '48px' }}
+            h="48px"
+            minW="48px"
+            minH="48px"
+            flex="none"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            _hover={{ bg: 'gray.800' }}
+            _active={{ bg: 'gray.900' }}
+            mt={{ base: 2, md: 0 }}
+          >
+            <Icon as={FiPlus} w={5} h={5} />
+          </Button>
           </Box>
         </form>
       </Box>
@@ -237,6 +248,7 @@ export default function Rewards() {
                       handleDeleteReward={handleDeleteReward}
                       handleRedeemReward={handleRedeemReward}
                       handleRepeatReward={handleRepeatReward}
+                      handleEditReward={handleEditReward}
                       provided={provided}
                       snapshot={snapshot}
                       isRedeemed={false}
@@ -249,13 +261,14 @@ export default function Rewards() {
               {/* Redeemed rewards below, not draggable */}
               {redeemedRewards.map((reward) => (
                 <RewardCard
-                  key={reward.id}
+          key={reward.id}
                   reward={reward}
                   menuOpenId={menuOpenId}
                   setMenuOpenId={setMenuOpenId}
                   handleDeleteReward={handleDeleteReward}
                   handleRedeemReward={handleRedeemReward}
                   handleRepeatReward={handleRepeatReward}
+                  handleEditReward={handleEditReward}
                   isRedeemed={true}
                   userXP={user?.xp ?? 0}
                 />
