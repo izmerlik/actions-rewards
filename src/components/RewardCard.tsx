@@ -2,7 +2,7 @@ import { Box, IconButton, Menu, MenuButton, MenuList, MenuItem, Text, Tooltip, I
 import { DraggableProvided, DraggableStateSnapshot } from '@hello-pangea/dnd';
 import React, { useRef, useEffect, useState } from 'react';
 import { FiMoreVertical, FiX, FiSave } from 'react-icons/fi';
-import { MdDelete, MdReplay, MdStarOutline } from 'react-icons/md';
+import { MdReplay, MdStarOutline } from 'react-icons/md';
 
 import { Reward } from '@/types';
 
