@@ -15,15 +15,15 @@ export default function Home() {
     const initializeUser = async () => {
       if (!loading) {
         if (!user) {
-          try {
-            await guestSignIn();
-          } catch (err) {
+    try {
+      await guestSignIn();
+    } catch (err) {
             console.error('Failed to sign in as guest:', err);
           }
         }
         router.push('/dashboard');
-      }
-    };
+    }
+  };
 
     initializeUser();
   }, [loading, user, guestSignIn, router]);

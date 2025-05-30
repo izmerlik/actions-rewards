@@ -135,6 +135,17 @@ export default function Actions() {
     }
   };
 
+  const handleEditAction = async (id: string, title: string, xp: number) => {
+    if (!user) return;
+    try {
+      const actionRef = doc(db, 'actions', id);
+      await updateDoc(actionRef, { title, xp });
+      setActions(actions.map(a => a.id === id ? { ...a, title, xp } : a));
+    } catch (error) {
+      console.error('Error editing action:', error);
+    }
+  };
+
   const sortedActions = [...actions].sort((a, b) => {
     if (a.completed === b.completed) return 0;
     return a.completed ? 1 : -1;
@@ -162,12 +173,12 @@ export default function Actions() {
   }
 
   if (loading) {
-    return <Box textAlign="center">Loading actions...</Box>;
+    return null;
   }
 
   return (
     <Box className="space-y-4">
-      <Heading as="h2" size="lg" fontWeight={600} color="gray.800" mb={1} mt={6} display={{ base: 'none', md: 'block' }}>
+      <Heading as="h2" size="md" fontWeight={600} color="gray.800" mb={1} mt={6} display={{ base: 'none', md: 'block' }}>
         Actions
       </Heading>
       <Box bg="white" p={5} borderRadius="16px" borderWidth={1} borderColor="gray.200" boxShadow="sm" mb={12}>
@@ -205,25 +216,25 @@ export default function Actions() {
               _placeholder={{ color: 'gray.400', fontSize: 'md' }}
               flex={1}
             />
-            <Button
-              type="submit"
-              bg="black"
-              color="white"
-              borderRadius="8px"
-              w="48px"
-              h="48px"
-              minW="48px"
-              minH="48px"
-              flex="none"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              _hover={{ bg: 'gray.800' }}
-              _active={{ bg: 'gray.900' }}
-              mt={{ base: 2, md: 0 }}
-            >
-              <Icon as={FiPlus} w={5} h={5} />
-            </Button>
+          <Button
+            type="submit"
+            bg="black"
+            color="white"
+            borderRadius="8px"
+            w={{ base: 'full', md: '48px' }}
+            h="48px"
+            minW="48px"
+            minH="48px"
+            flex="none"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            _hover={{ bg: 'gray.800' }}
+            _active={{ bg: 'gray.900' }}
+            mt={{ base: 2, md: 0 }}
+          >
+            <Icon as={FiPlus} w={5} h={5} />
+          </Button>
           </Box>
         </form>
       </Box>
@@ -241,6 +252,7 @@ export default function Actions() {
                       handleDeleteAction={handleDeleteAction}
                       handleCompleteAction={handleCompleteAction}
                       handleRepeatAction={handleRepeatAction}
+                      handleEditAction={handleEditAction}
                       provided={provided}
                       snapshot={snapshot}
                     />
@@ -259,6 +271,7 @@ export default function Actions() {
                       handleDeleteAction={handleDeleteAction}
                       handleCompleteAction={handleCompleteAction}
                       handleRepeatAction={handleRepeatAction}
+                      handleEditAction={handleEditAction}
                       provided={provided}
                       snapshot={snapshot}
                       isCompleted
