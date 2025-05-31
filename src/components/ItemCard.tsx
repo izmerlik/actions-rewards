@@ -1,6 +1,7 @@
 import { Box, IconButton, Menu, MenuButton, MenuList, MenuItem, Text } from '@chakra-ui/react';
 import { ReactNode, useRef, useEffect, useState } from 'react';
 import { FiMoreVertical } from 'react-icons/fi';
+import { DraggableProvided, DraggableStateSnapshot } from '@hello-pangea/dnd';
 
 interface ItemCardProps {
   id: string;
@@ -11,9 +12,9 @@ interface ItemCardProps {
   onDelete: (id: string) => void;
   onEdit?: () => void;
   isInactive?: boolean;
-  provided?: any;
-  snapshot?: any;
-  children?: ReactNode;
+  provided?: DraggableProvided;
+  snapshot?: DraggableStateSnapshot;
+  children?: React.ReactNode;
 }
 
 const ItemCard: React.FC<ItemCardProps> = ({

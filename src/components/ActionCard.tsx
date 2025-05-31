@@ -1,11 +1,11 @@
-import { Box, IconButton, Menu, MenuButton, MenuList, MenuItem, Text, Input } from '@chakra-ui/react';
+import { IconButton, Tooltip } from '@chakra-ui/react';
 import { DraggableProvided, DraggableStateSnapshot } from '@hello-pangea/dnd';
 import React, { useRef, useEffect, useState } from 'react';
-import { FiMoreVertical, FiX, FiSave } from 'react-icons/fi';
 import { MdCheck, MdReplay } from 'react-icons/md';
-import ItemCard from './ItemCard';
 
 import { Action } from '@/types';
+
+import ItemCard from './ItemCard';
 
 interface ActionCardProps {
   action: Action;
@@ -14,7 +14,6 @@ interface ActionCardProps {
   handleDeleteAction: (id: string) => void;
   handleCompleteAction: (action: Action) => void;
   handleRepeatAction: (action: Action) => void;
-  handleEditAction: (id: string, title: string, xp: number) => void;
   provided: DraggableProvided;
   snapshot: DraggableStateSnapshot;
   isCompleted?: boolean;
@@ -28,21 +27,12 @@ const ActionCard: React.FC<ActionCardProps> = ({
   handleDeleteAction,
   handleCompleteAction,
   handleRepeatAction,
-  handleEditAction,
   provided,
   snapshot,
   isCompleted = false,
   onEdit,
 }) => {
-  const [isMultiLine, setIsMultiLine] = useState(false);
   const nameRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (nameRef.current) {
-      const lineHeight = parseInt(getComputedStyle(nameRef.current).lineHeight);
-      const height = nameRef.current.scrollHeight;
-      setIsMultiLine(height > lineHeight + 1);
-    }
-  }, [action.title]);
 
   return (
     <ItemCard

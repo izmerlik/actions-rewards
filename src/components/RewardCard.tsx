@@ -1,11 +1,11 @@
-import { Box, IconButton, Menu, MenuButton, MenuList, MenuItem, Text, Tooltip, Input } from '@chakra-ui/react';
+import { IconButton, Tooltip } from '@chakra-ui/react';
 import { DraggableProvided, DraggableStateSnapshot } from '@hello-pangea/dnd';
 import React, { useRef, useEffect, useState } from 'react';
-import { FiMoreVertical, FiX, FiSave } from 'react-icons/fi';
 import { MdReplay, MdStarOutline } from 'react-icons/md';
-import ItemCard from './ItemCard';
 
 import { Reward } from '@/types';
+
+import ItemCard from './ItemCard';
 
 interface RewardCardProps {
   reward: Reward;
@@ -14,7 +14,6 @@ interface RewardCardProps {
   handleDeleteReward: (id: string) => void;
   handleRedeemReward: (reward: Reward) => void;
   handleRepeatReward: (reward: Reward) => void;
-  handleEditReward: (id: string, title: string, xpCost: number) => void;
   provided?: DraggableProvided;
   snapshot?: DraggableStateSnapshot;
   isRedeemed?: boolean;
@@ -29,23 +28,13 @@ const RewardCard: React.FC<RewardCardProps> = ({
   handleDeleteReward,
   handleRedeemReward,
   handleRepeatReward,
-  handleEditReward,
   provided,
   snapshot,
   isRedeemed = false,
   userXP,
   onEdit,
 }) => {
-  const [isMultiLine, setIsMultiLine] = useState(false);
   const nameRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (nameRef.current) {
-      const lineHeight = parseInt(getComputedStyle(nameRef.current).lineHeight);
-      const height = nameRef.current.scrollHeight;
-      const isSingleLine = height <= lineHeight + 2;
-      setIsMultiLine(!isSingleLine);
-    }
-  }, [reward.title]);
 
   const notEnoughXP = !isRedeemed && userXP < reward.xpCost;
 
@@ -75,7 +64,7 @@ const RewardCard: React.FC<RewardCardProps> = ({
         />
       ) : (
         <Tooltip label={notEnoughXP ? 'Not enough XP' : ''} isDisabled={!notEnoughXP} placement="top">
-          <Box pointerEvents={notEnoughXP ? 'none' : 'auto'} sx={{ display: 'flex' }}>
+          <div style={{ display: 'flex', pointerEvents: notEnoughXP ? 'none' : 'auto' }}>
             <IconButton
               aria-label="Redeem"
               icon={<MdStarOutline size={24} color="black" />}
@@ -86,7 +75,7 @@ const RewardCard: React.FC<RewardCardProps> = ({
               flexShrink={0}
               flex="none"
             />
-          </Box>
+          </div>
         </Tooltip>
       )}
     </ItemCard>

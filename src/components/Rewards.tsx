@@ -107,7 +107,7 @@ export default function Rewards() {
     });
   }
 
-  function renderRewardCard(reward: Reward, index: number, provided: any, snapshot: any) {
+  function renderRewardCard(reward: Reward, index: number, provided: unknown, snapshot: unknown) {
     if (pendingEditId === reward.id || pendingDeleteId === reward.id) {
       return <ShimmerCard key={reward.id} />;
     }
@@ -120,12 +120,8 @@ export default function Rewards() {
         handleDeleteReward={handleDeleteReward}
         handleRedeemReward={handleRedeemReward}
         handleRepeatReward={handleRepeatReward}
-        handleEditReward={() => {
-          setEditingReward(reward);
-          setIsEditFormOpen(true);
-        }}
-        provided={provided}
-        snapshot={snapshot}
+        provided={provided as any}
+        snapshot={snapshot as any}
         userXP={user?.xp ?? 0}
         isRedeemed={reward.redeemedAt !== undefined}
         onEdit={(r) => {
@@ -212,10 +208,6 @@ export default function Rewards() {
                   handleDeleteReward={handleDeleteReward}
                   handleRedeemReward={handleRedeemReward}
                   handleRepeatReward={handleRepeatReward}
-                  handleEditReward={() => {
-                    setEditingReward(reward);
-                    setIsEditFormOpen(true);
-                  }}
                   provided={{} as any}
                   snapshot={{} as any}
                   isRedeemed

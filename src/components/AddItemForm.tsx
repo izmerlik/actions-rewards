@@ -1,6 +1,5 @@
-import { Box, Button, Input, Heading, IconButton, useBreakpointValue, Drawer, DrawerOverlay, DrawerContent, DrawerHeader, DrawerBody, DrawerCloseButton } from '@chakra-ui/react';
+import { Box, Button, Input, useBreakpointValue, Drawer, DrawerOverlay, DrawerContent, DrawerHeader, DrawerBody, DrawerCloseButton } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
-import { FiX } from 'react-icons/fi';
 
 interface AddItemFormProps {
   isOpen: boolean;

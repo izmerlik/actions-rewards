@@ -6,7 +6,7 @@ interface ItemListProps<T> {
   items: T[];
   droppableId: string;
   onDragEnd: (result: DropResult) => void;
-  renderItem: (item: T, index: number, provided: any, snapshot: any) => React.ReactNode;
+  renderItem: (item: T, index: number, provided: unknown, snapshot: unknown) => React.ReactNode;
   emptyMessage?: string;
 }
 
