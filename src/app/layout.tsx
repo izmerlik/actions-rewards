@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google';
 import ThemeRegistry from '@/components/ThemeRegistry';
 import { AuthProvider } from '@/contexts/AuthContext';
 import './globals.css';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const inter = Inter({
   subsets: ["latin"],
@@ -23,13 +24,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} font-sans antialiased`}>
-        <ThemeRegistry>
-          <AuthProvider>
-            <main className="min-h-screen">
-              {children}
-            </main>
-          </AuthProvider>
-        </ThemeRegistry>
+        <ErrorBoundary>
+          <ThemeRegistry>
+            <AuthProvider>
+              <main className="min-h-screen">
+                {children}
+              </main>
+            </AuthProvider>
+          </ThemeRegistry>
+        </ErrorBoundary>
       </body>
     </html>
   );

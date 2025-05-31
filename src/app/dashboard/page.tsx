@@ -6,12 +6,14 @@ import { useState, useEffect } from 'react';
 
 import Actions from '@/components/Actions';
 import Rewards from '@/components/Rewards';
+import ErrorHandler from '@/components/ErrorHandler';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Dashboard() {
   const { user, loading, signOut, guestSignIn } = useAuth();
   const router = useRouter();
   const [selectedTab, setSelectedTab] = useState(0);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     const initializeUser = async () => {
@@ -20,12 +22,22 @@ export default function Dashboard() {
           await guestSignIn();
         } catch (err) {
           console.error('Failed to sign in as guest:', err);
+          setError(err instanceof Error ? err : new Error('Failed to sign in as guest'));
         }
       }
     };
 
     initializeUser();
   }, [loading, user, guestSignIn]);
+
+  const handleReset = () => {
+    setError(null);
+    window.location.reload();
+  };
+
+  if (error) {
+    return <ErrorHandler error={error} onReset={handleReset} />;
+  }
 
   if (loading) {
     return (
@@ -131,10 +143,10 @@ export default function Dashboard() {
               color="black"
               onClick={signOut}
               size="sm"
-              w="120px"
-              h="48px"
+              w="90px"
+              h="36px"
               borderRadius="8px"
-              fontSize="md"
+              fontSize="sm"
             >
               Sign Out
             </Button>

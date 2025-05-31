@@ -1,145 +1,80 @@
 'use client';
 
-import { Box, Button, Input, Heading, Stack, Icon } from '@chakra-ui/react';
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { Box, Button, Input, Heading, Stack, Icon, Text, Spinner, Skeleton, VStack, SkeletonCircle } from '@chakra-ui/react';
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { useState, useEffect, useCallback } from 'react';
 import { FiPlus } from 'react-icons/fi';
+import { DropResult } from '@hello-pangea/dnd';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
 import { Reward } from '@/types';
 
 import RewardCard from './RewardCard';
+import AddItemForm from './AddItemForm';
+import ItemList from './ItemList';
+import { useRewards } from '@/hooks/useRewards';
+import ShimmerCard from './ShimmerCard';
 
 export default function Rewards() {
   const { user, updateUserXP } = useAuth();
-  const [rewards, setRewards] = useState<Reward[]>([]);
-  const [newRewardTitle, setNewRewardTitle] = useState('');
-  const [newRewardXPCost, setNewRewardXPCost] = useState('');
-  const [loading, setLoading] = useState(true);
+  const { items: rewards, loading, addItem, updateItem, deleteItem } = useRewards();
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [isAddFormOpen, setIsAddFormOpen] = useState(false);
+  const [editingReward, setEditingReward] = useState<Reward | null>(null);
+  const [isEditFormOpen, setIsEditFormOpen] = useState(false);
+  const [pendingAdd, setPendingAdd] = useState(false);
+  const [pendingEditId, setPendingEditId] = useState<string | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [pendingRepeatId, setPendingRepeatId] = useState<string | null>(null);
 
-  const fetchRewards = useCallback(async () => {
+  const handleAddReward = async (title: string, xpCost: number) => {
     if (!user) return;
-    
-    const rewardsRef = collection(db, 'rewards');
-    const q = query(rewardsRef, where('userId', '==', user.id));
-    const querySnapshot = await getDocs(q);
-    
-    const rewardsData = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate(),
-      redeemedAt: doc.data().redeemedAt?.toDate(),
-    })) as Reward[];
-    
-    setRewards(rewardsData);
-    setLoading(false);
-  }, [user]);
-
-  useEffect(() => {
-    if (user) {
-      fetchRewards();
-    }
-  }, [user, fetchRewards]);
-
-  const handleAddReward = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !newRewardTitle || !newRewardXPCost) return;
-
-    const xpCost = parseInt(newRewardXPCost);
-    if (isNaN(xpCost) || xpCost <= 0) return;
-
-    try {
-      const docRef = await addDoc(collection(db, 'rewards'), {
-        userId: user.id,
-        title: newRewardTitle,
-        xpCost: xpCost,
-        createdAt: new Date(),
-      });
-
-      const newReward: Reward = {
-        id: docRef.id,
-        userId: user.id,
-        title: newRewardTitle,
-        xpCost: xpCost,
-        createdAt: new Date(),
-      };
-
-      setRewards([...rewards, newReward]);
-      setNewRewardTitle('');
-      setNewRewardXPCost('');
-    } catch (error) {
-      console.error('Error adding reward:', error);
-    }
+    setPendingAdd(true);
+    const now = new Date();
+    await addItem({
+      userId: user.id,
+      title,
+      xpCost,
+      redeemedAt: null,
+      createdAt: now,
+    } as unknown as Omit<Reward, 'id'>);
+    setPendingAdd(false);
   };
 
   const handleRedeemReward = async (reward: Reward) => {
     if (!user || user.xp < reward.xpCost) return;
-
-    try {
-      const rewardRef = doc(db, 'rewards', reward.id);
-      const userRef = doc(db, 'users', user.id);
-      const newXP = user.xp - reward.xpCost;
-
-      await updateDoc(rewardRef, {
-        redeemedAt: new Date(),
-      });
-
-      await updateDoc(userRef, {
-        xp: newXP,
-      });
-
-      updateUserXP(newXP);
-
-      setRewards(rewards.map(r => 
-        r.id === reward.id 
-          ? { ...r, redeemedAt: new Date() }
-          : r
-      ));
-    } catch (error) {
-      console.error('Error redeeming reward:', error);
-    }
+    const rewardRef = reward.id;
+    const userRef = doc(db, 'users', user.id);
+    const newXP = user.xp - reward.xpCost;
+    await updateItem(rewardRef, {
+      redeemedAt: new Date(),
+    });
+    await updateDoc(userRef, { xp: newXP });
+    updateUserXP(newXP);
   };
 
   const handleRepeatReward = async (reward: Reward) => {
     if (!user) return;
-    try {
-      const rewardRef = doc(db, 'rewards', reward.id);
-      await updateDoc(rewardRef, {
-        redeemedAt: null,
-      });
-      setRewards(rewards.map(r =>
-        r.id === reward.id
-          ? { ...r, redeemedAt: undefined }
-          : r
-      ));
-    } catch (error) {
-      console.error('Error repeating reward:', error);
-    }
+    setPendingRepeatId(reward.id);
+    await updateItem(reward.id, {
+      redeemedAt: null,
+    });
+    setPendingRepeatId(null);
   };
 
   const handleDeleteReward = async (rewardId: string) => {
-    console.log('Delete pressed for reward:', rewardId);
     setMenuOpenId(null);
-    try {
-      await deleteDoc(doc(db, 'rewards', rewardId));
-      setRewards(rewards.filter(r => r.id !== rewardId));
-    } catch (error) {
-      console.error('Error deleting reward:', error);
-    }
+    setPendingDeleteId(rewardId);
+    await deleteItem(rewardId);
+    setPendingDeleteId(null);
   };
 
   const handleEditReward = async (id: string, title: string, xpCost: number) => {
     if (!user) return;
-    try {
-      const rewardRef = doc(db, 'rewards', id);
-      await updateDoc(rewardRef, { title, xpCost });
-      setRewards(rewards.map(r => r.id === id ? { ...r, title, xpCost } : r));
-    } catch (error) {
-      console.error('Error editing reward:', error);
-    }
+    setPendingEditId(id);
+    await updateItem(id, { title, xpCost });
+    setPendingEditId(null);
   };
 
   const sortedRewards = [...rewards].sort((a, b) => {
@@ -156,127 +91,172 @@ export default function Rewards() {
   }
 
   // Only reorder active (not redeemed) cards
-  const activeRewards = sortedRewards.filter(r => !r.redeemedAt);
-  const redeemedRewards = sortedRewards.filter(r => r.redeemedAt);
+  const activeRewards = rewards
+    .filter(r => !r.redeemedAt)
+    .sort((a, b) => (b.createdAt?.getTime?.() || 0) - (a.createdAt?.getTime?.() || 0));
+  const redeemedRewards = rewards
+    .filter(r => r.redeemedAt)
+    .sort((a, b) => (b.redeemedAt?.getTime?.() || 0) - (a.redeemedAt?.getTime?.() || 0));
 
   function onDragEnd(result: DropResult) {
     if (!result.destination) return;
     const reordered = reorder(activeRewards, result.source.index, result.destination.index);
-    setRewards([
-      ...reordered,
-      ...redeemedRewards,
-    ]);
+    updateItem(reordered[0].id, {
+      ...reordered[0],
+      ...reordered.slice(1),
+    });
   }
 
-  if (loading) {
-    return null;
+  function renderRewardCard(reward: Reward, index: number, provided: any, snapshot: any) {
+    if (pendingEditId === reward.id || pendingDeleteId === reward.id) {
+      return <ShimmerCard key={reward.id} />;
+    }
+    return (
+      <RewardCard
+        key={reward.id}
+        reward={reward}
+        menuOpenId={menuOpenId}
+        setMenuOpenId={setMenuOpenId}
+        handleDeleteReward={handleDeleteReward}
+        handleRedeemReward={handleRedeemReward}
+        handleRepeatReward={handleRepeatReward}
+        handleEditReward={() => {
+          setEditingReward(reward);
+          setIsEditFormOpen(true);
+        }}
+        provided={provided}
+        snapshot={snapshot}
+        userXP={user?.xp ?? 0}
+        isRedeemed={reward.redeemedAt !== undefined}
+        onEdit={(r) => {
+          setEditingReward(r);
+          setIsEditFormOpen(true);
+        }}
+      />
+    );
   }
+
+  console.log('Rendering rewards. Active:', activeRewards.length, 'Redeemed:', redeemedRewards.length);
 
   return (
-    <Box className="space-y-4">
-      <Heading as="h2" size="md" fontWeight={600} color="gray.800" mb={1} mt={6} display={{ base: 'none', md: 'block' }}>
-        Rewards
-      </Heading>
-      <Box bg="white" p={5} borderRadius="16px" borderWidth={1} borderColor="gray.200" boxShadow="sm" mb={12}>
-        <Heading as="h3" size="sm" fontWeight={600} color="gray.800" mb={4}>Add new reward</Heading>
-        <form onSubmit={handleAddReward} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <Box display={{ base: 'block', md: 'flex' }} gap={2} alignItems="center">
-            <Input
-              id="reward-title"
-              placeholder="Name"
-              value={newRewardTitle}
-              onChange={(e) => setNewRewardTitle(e.target.value)}
-              required
-              size="md"
-              mb={{ base: 2, md: 0 }}
-              fontSize="md"
-              borderRadius="8px"
-              px={3}
-              h="48px"
-              _placeholder={{ color: 'gray.400', fontSize: 'md' }}
-              flex={2}
-            />
-            <Input
-              id="reward-xp-cost"
-              placeholder="XP"
-              type="number"
-              value={newRewardXPCost}
-              onChange={(e) => setNewRewardXPCost(e.target.value)}
-              required
-              min={1}
-              size="md"
-              fontSize="md"
-              borderRadius="8px"
-              px={3}
-              h="48px"
-              _placeholder={{ color: 'gray.400', fontSize: 'md' }}
-              flex={1}
-            />
-          <Button
-            type="submit"
-            bg="black"
-            color="white"
-            borderRadius="8px"
-            w={{ base: 'full', md: '48px' }}
-            h="48px"
-            minW="48px"
-            minH="48px"
-            flex="none"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            _hover={{ bg: 'gray.800' }}
-            _active={{ bg: 'gray.900' }}
-            mt={{ base: 2, md: 0 }}
-          >
-            <Icon as={FiPlus} w={5} h={5} />
-          </Button>
-          </Box>
-        </form>
+    <Box className="space-y-4" pt={6} position="relative">
+      <Box>
+        <Heading as="h2" size="md" fontWeight={600} color="gray.800" display={{ base: 'none', md: 'block' }} mb={4}>
+          Rewards
+        </Heading>
+        <Button
+          leftIcon={<FiPlus />}
+          variant="outline"
+          borderColor="gray.200"
+          color="black"
+          onClick={() => setIsAddFormOpen(true)}
+          size="md"
+          h="48px"
+          borderRadius="12px"
+          fontSize="md"
+          w="full"
+        >
+          Add New Reward
+        </Button>
       </Box>
-      <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable droppableId="rewards-droppable">
-          {(provided) => (
-            <Stack spacing={3} mt={8} ref={provided.innerRef} {...provided.droppableProps}>
-              {activeRewards.map((reward, index) => (
-                <Draggable key={reward.id} draggableId={reward.id} index={index}>
-                  {(provided, snapshot) => (
-                    <RewardCard
-                      reward={reward}
-                      menuOpenId={menuOpenId}
-                      setMenuOpenId={setMenuOpenId}
-                      handleDeleteReward={handleDeleteReward}
-                      handleRedeemReward={handleRedeemReward}
-                      handleRepeatReward={handleRepeatReward}
-                      handleEditReward={handleEditReward}
-                      provided={provided}
-                      snapshot={snapshot}
-                      isRedeemed={false}
-                      userXP={user?.xp ?? 0}
-                    />
-                  )}
-                </Draggable>
-              ))}
-              {provided.placeholder}
-              {/* Redeemed rewards below, not draggable */}
-              {redeemedRewards.map((reward) => (
+
+      {(activeRewards.length > 0 || loading) && (
+        <Box position="relative" mt={4}>
+          {loading ? (
+            <Box>
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+                bg="white"
+                borderRadius="16px"
+                borderWidth={1}
+                borderColor="gray.200"
+                p={4}
+                h="88px"
+              >
+                <SkeletonCircle size="6" startColor="gray.200" endColor="gray.300" />
+                <Box flex={1} minW={0} ml={4}>
+                  <Skeleton height="20px" width="70%" mb={2} borderRadius="6px" startColor="gray.200" endColor="gray.300" />
+                  <Skeleton height="16px" width="40%" borderRadius="6px" startColor="gray.200" endColor="gray.300" />
+                </Box>
+                <Skeleton height="48px" width="48px" borderRadius="8px" ml={4} startColor="gray.200" endColor="gray.300" />
+              </Box>
+            </Box>
+          ) : (
+            <ItemList
+              items={pendingAdd ? [null, ...activeRewards] : activeRewards}
+              droppableId="rewards"
+              onDragEnd={onDragEnd}
+              renderItem={(item, index, provided, snapshot) =>
+                item === null ? <ShimmerCard key="shimmer-add" /> : renderRewardCard(item, index, provided, snapshot)
+              }
+              emptyMessage={rewards.length === 0 ? "No rewards yet. Add your first reward!" : undefined}
+            />
+          )}
+        </Box>
+      )}
+
+      {redeemedRewards.length > 0 && (
+        <Box mt={4}>
+          <Stack spacing={3}>
+            {redeemedRewards.map((reward) =>
+              pendingRepeatId === reward.id ? (
+                <ShimmerCard key={reward.id} />
+              ) : (
                 <RewardCard
-          key={reward.id}
+                  key={reward.id}
                   reward={reward}
                   menuOpenId={menuOpenId}
                   setMenuOpenId={setMenuOpenId}
                   handleDeleteReward={handleDeleteReward}
                   handleRedeemReward={handleRedeemReward}
                   handleRepeatReward={handleRepeatReward}
-                  handleEditReward={handleEditReward}
-                  isRedeemed={true}
+                  handleEditReward={() => {
+                    setEditingReward(reward);
+                    setIsEditFormOpen(true);
+                  }}
+                  provided={{} as any}
+                  snapshot={{} as any}
+                  isRedeemed
                   userXP={user?.xp ?? 0}
+                  onEdit={(r) => {
+                    setEditingReward(r);
+                    setIsEditFormOpen(true);
+                  }}
                 />
-              ))}
-            </Stack>
-          )}
-        </Droppable>
-      </DragDropContext>
+              )
+            )}
+          </Stack>
+        </Box>
+      )}
+
+      <AddItemForm
+        isOpen={isAddFormOpen}
+        onClose={() => setIsAddFormOpen(false)}
+        onSubmit={handleAddReward}
+        title="Add New Reward"
+        type="reward"
+      />
+      <AddItemForm
+        isOpen={isEditFormOpen}
+        onClose={() => {
+          setIsEditFormOpen(false);
+          setEditingReward(null);
+        }}
+        onSubmit={(title, xpCost) => {
+          if (editingReward) {
+            handleEditReward(editingReward.id, title, xpCost);
+            setIsEditFormOpen(false);
+            setEditingReward(null);
+          }
+        }}
+        title="Edit Reward"
+        type="reward"
+        mode="edit"
+        initialTitle={editingReward?.title}
+        initialXP={editingReward?.xpCost}
+      />
     </Box>
   );
 }
