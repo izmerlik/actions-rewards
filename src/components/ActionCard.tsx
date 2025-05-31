@@ -1,80 +1,74 @@
-import { Box, Button, Card, CardBody, CardHeader, Flex, IconButton, Menu, MenuButton, MenuItem, MenuList, Text, useDisclosure } from '@chakra-ui/react';
-import { Draggable, DraggableProvided, DraggableStateSnapshot } from '@hello-pangea/dnd';
-import { useRef } from 'react';
-import { FaEllipsisV, FaEdit, FaTrash, FaCheck, FaRedo } from 'react-icons/fa';
+import React from 'react';
+import { Box, Button, Card, CardBody, CardHeader, Flex, Menu, MenuButton, MenuItem, MenuList, Text } from '@chakra-ui/react';
+import { Draggable } from '@hello-pangea/dnd';
+import { FaEllipsisV, FaEdit, FaTrash } from 'react-icons/fa';
 
 import { Action } from '@/types';
-import AddItemForm from './AddItemForm';
-import ItemCard from './ItemCard';
 
 interface ActionCardProps {
   action: Action;
+  index: number;
   onEdit: (action: Action) => void;
-  onDelete: () => void;
-  onComplete: () => void;
-  onRepeat: () => void;
-  isCompleted: boolean;
-  menuOpenId: string | null;
-  setMenuOpenId: (id: string | null) => void;
-  handleEditAction: (action: Action) => void;
-  provided: DraggableProvided;
-  snapshot: DraggableStateSnapshot;
+  onDelete: (action: Action) => void;
 }
 
-const ActionCard: React.FC<ActionCardProps> = ({
-  action,
-  onEdit,
-  onDelete,
-  onComplete,
-  onRepeat,
-  isCompleted,
-  menuOpenId,
-  setMenuOpenId,
-  handleEditAction,
-  provided,
-  snapshot,
-}) => {
-  const nameRef = useRef<HTMLDivElement>(null);
+export default function ActionCard({ action, index, onEdit, onDelete }: ActionCardProps) {
+  const handleEditAction = (action: Action) => {
+    onEdit(action);
+  };
+
+  const handleDeleteAction = (action: Action) => {
+    onDelete(action);
+  };
 
   return (
-    <ItemCard
-      id={action.id}
-      title={action.title}
-      menuOpenId={menuOpenId}
-      setMenuOpenId={setMenuOpenId}
-      onDelete={onDelete}
-      onEdit={onEdit ? () => onEdit(action) : undefined}
-      isInactive={isCompleted}
-      provided={provided}
-      snapshot={snapshot}
-    >
-      {isCompleted ? (
-        <IconButton
-          aria-label="Repeat"
-          icon={<FaRedo size={20} color="black" />}
-          variant="outline"
+    <Draggable draggableId={action.id} index={index}>
+      {(provided) => (
+        <Card
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
+          mb={4}
+          borderWidth={1}
           borderColor="gray.200"
-          onClick={onRepeat}
-          sx={{ width: '48px', height: '48px', minWidth: '48px', minHeight: '48px', borderRadius: '8px' }}
-          flexShrink={0}
-          flex="none"
-        />
-      ) : (
-        <IconButton
-          aria-label="Complete"
-          icon={<FaCheck size={20} color="black" />}
-          variant="outline"
-          borderColor="gray.200"
-          onClick={onComplete}
-          size="md"
-          borderRadius="8px"
-          sx={{ width: '48px', height: '48px', minWidth: '48px', minHeight: '48px', borderRadius: '8px' }}
-          flexShrink={0}
-          flex="none"
-        />
+          borderRadius="lg"
+          overflow="hidden"
+          bg="white"
+          _hover={{ borderColor: 'gray.300' }}
+        >
+          <CardHeader p={4} pb={2}>
+            <Flex justify="space-between" align="center">
+              <Text fontSize="md" fontWeight={600} color="gray.800">
+                {action.title}
+              </Text>
+              <Menu>
+                <MenuButton
+                  as={Button}
+                  variant="ghost"
+                  size="sm"
+                  p={1}
+                  _hover={{ bg: 'gray.100' }}
+                >
+                  <FaEllipsisV />
+                </MenuButton>
+                <MenuList>
+                  <MenuItem icon={<FaEdit />} onClick={() => handleEditAction(action)}>
+                    Edit
+                  </MenuItem>
+                  <MenuItem icon={<FaTrash />} onClick={() => handleDeleteAction(action)}>
+                    Delete
+                  </MenuItem>
+                </MenuList>
+              </Menu>
+            </Flex>
+          </CardHeader>
+          <CardBody p={4} pt={2}>
+            <Text color="gray.600" fontSize="sm">
+              {action.xp} XP
+            </Text>
+          </CardBody>
+        </Card>
       )}
-    </ItemCard>
+    </Draggable>
   );
-};
-
-export default ActionCard; 
+} 

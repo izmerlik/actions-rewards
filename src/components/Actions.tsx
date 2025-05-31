@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { useState } from 'react';
+import { doc, updateDoc } from 'firebase/firestore';
 import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
-import { Box, Button, Card, CardBody, CardHeader, Flex, Heading, Menu, MenuButton, MenuItem, MenuList, Skeleton, SkeletonCircle, Stack, Text, useDisclosure } from '@chakra-ui/react';
-import { FaEllipsisV, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
+import { Box, Button, Heading, Text, Stack, useDisclosure } from '@chakra-ui/react';
+import { FaPlus } from 'react-icons/fa';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
@@ -23,14 +23,12 @@ export default function Actions() {
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
   const [editingAction, setEditingAction] = useState<Action | null>(null);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
-  const [pendingAdd, setPendingAdd] = useState(false);
   const [pendingEditId, setPendingEditId] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [pendingRepeatId, setPendingRepeatId] = useState<string | null>(null);
 
   const handleAddAction = async (title: string, xp: number) => {
     if (!user) return;
-    setPendingAdd(true);
     const now = new Date();
     await addItem({
       userId: user.id,
@@ -39,7 +37,6 @@ export default function Actions() {
       completed: false,
       createdAt: now,
     } as Omit<Action, 'id'>);
-    setPendingAdd(false);
   };
 
   const handleCompleteAction = async (actionId: string) => {
@@ -64,10 +61,10 @@ export default function Actions() {
     });
   };
 
-  const handleDeleteAction = async (actionId: string) => {
+  const handleDeleteAction = async (action: Action) => {
     setMenuOpenId(null);
-    setPendingDeleteId(actionId);
-    await deleteItem(actionId);
+    setPendingDeleteId(action.id);
+    await deleteItem(action.id);
     setPendingDeleteId(null);
   };
 
@@ -77,11 +74,6 @@ export default function Actions() {
     await updateItem(id, { title, xp });
     setPendingEditId(null);
   };
-
-  const sortedActions = [...actions].sort((a, b) => {
-    if (a.completed === b.completed) return 0;
-    return a.completed ? 1 : -1;
-  });
 
   // Helper to reorder array
   function reorder(list: Action[], startIndex: number, endIndex: number): Action[] {
@@ -104,31 +96,6 @@ export default function Actions() {
     const reordered = reorder(activeActions, result.source.index, result.destination.index);
     // Update the actions in the useActions hook
     // This is a placeholder implementation. You might want to implement a more robust way to update the actions in the useActions hook
-  }
-
-  function renderActionCard(action: Action, index: number, provided: any, snapshot: any) {
-    if (pendingEditId === action.id || pendingDeleteId === action.id) {
-      return <ShimmerCard key={action.id} />;
-    }
-    return (
-      <ActionCard
-        key={action.id}
-        action={action}
-        menuOpenId={menuOpenId}
-        setMenuOpenId={setMenuOpenId}
-        onDelete={() => handleDeleteAction(action.id)}
-        onEdit={(a) => {
-          setEditingAction(a);
-          setIsEditFormOpen(true);
-        }}
-        onComplete={() => handleCompleteAction(action.id)}
-        onRepeat={() => handleRepeatAction(action.id)}
-        isCompleted={action.completed}
-        handleEditAction={() => {}}
-        provided={provided}
-        snapshot={snapshot}
-      />
-    );
   }
 
   return (
@@ -157,62 +124,44 @@ export default function Actions() {
         <Box position="relative" mt={4}>
           {loading ? (
             <Box mt={4}>
-              <Box
-                display="flex"
-                alignItems="center"
-                justifyContent="space-between"
-                bg="white"
-                borderRadius="16px"
-                borderWidth={1}
-                borderColor="gray.200"
-                p={4}
-                h="88px"
-              >
-                <SkeletonCircle size="6" startColor="gray.200" endColor="gray.300" />
-                <Box flex={1} minW={0} ml={4}>
-                  <Skeleton height="20px" width="70%" mb={2} borderRadius="6px" startColor="gray.200" endColor="gray.300" />
-                  <Skeleton height="16px" width="40%" borderRadius="6px" startColor="gray.200" endColor="gray.300" />
-                </Box>
-                <Skeleton height="48px" width="48px" borderRadius="8px" ml={4} startColor="gray.200" endColor="gray.300" />
-              </Box>
+              <ShimmerCard />
             </Box>
+          ) : actions.length === 0 ? (
+            <Text color="gray.500" textAlign="center" py={4}>
+              No actions yet. Add your first action!
+            </Text>
           ) : (
-            actions.length === 0 ? (
-              <Text color="gray.500" textAlign="center" py={4}>
-                No actions yet. Add your first action!
-              </Text>
-            ) : (
-              <ItemList
-                id="actions-list"
-                title="Actions"
-                items={activeActions}
-                renderItem={(item, index) =>
-                  pendingEditId === item.id || pendingDeleteId === item.id ? (
-                    <ShimmerCard key={item.id} />
-                  ) : (
-                    <ActionCard
-                      key={item.id}
-                      action={item}
-                      menuOpenId={menuOpenId}
-                      setMenuOpenId={setMenuOpenId}
-                      onDelete={() => handleDeleteAction(item.id)}
-                      onEdit={(a) => {
-                        setEditingAction(a);
-                        setIsEditFormOpen(true);
-                      }}
-                      onComplete={() => handleCompleteAction(item.id)}
-                      onRepeat={() => handleRepeatAction(item.id)}
-                      isCompleted={item.completed}
-                      handleEditAction={() => {}}
-                      provided={{} as any}
-                      snapshot={{} as any}
-                    />
-                  )
-                }
-                provided={{} as any}
-                snapshot={{} as any}
-              />
-            )
+            <ItemList
+              id="actions-list"
+              title="Actions"
+              items={activeActions.map(action => ({
+                id: action.id,
+                title: action.title,
+                userId: action.userId,
+                xp: action.xp,
+                completed: action.completed,
+                createdAt: action.createdAt,
+                completedAt: action.completedAt
+              }))}
+              renderItem={(item, index) =>
+                pendingEditId === item.id || pendingDeleteId === item.id ? (
+                  <ShimmerCard key={item.id} />
+                ) : (
+                  <ActionCard
+                    key={item.id}
+                    action={item as unknown as Action}
+                    index={index}
+                    onDelete={handleDeleteAction}
+                    onEdit={(a) => {
+                      setEditingAction(a);
+                      setIsEditFormOpen(true);
+                    }}
+                  />
+                )
+              }
+              provided={{} as any}
+              snapshot={{} as any}
+            />
           )}
         </Box>
       )}
@@ -220,26 +169,19 @@ export default function Actions() {
       {completedActions.length > 0 && (
         <Box mt={4}>
           <Stack spacing={3}>
-            {completedActions.map((action) =>
+            {completedActions.map((action, index) =>
               pendingRepeatId === action.id ? (
                 <ShimmerCard key={action.id} />
               ) : (
                 <ActionCard
                   key={action.id}
                   action={action}
-                  menuOpenId={menuOpenId}
-                  setMenuOpenId={setMenuOpenId}
-                  onDelete={() => handleDeleteAction(action.id)}
+                  index={index}
+                  onDelete={handleDeleteAction}
                   onEdit={(a) => {
                     setEditingAction(a);
                     setIsEditFormOpen(true);
                   }}
-                  onComplete={() => handleCompleteAction(action.id)}
-                  onRepeat={() => handleRepeatAction(action.id)}
-                  isCompleted
-                  handleEditAction={() => {}}
-                  provided={{} as any}
-                  snapshot={{} as any}
                 />
               )
             )}
