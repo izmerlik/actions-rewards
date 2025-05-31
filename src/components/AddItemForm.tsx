@@ -1,19 +1,17 @@
-import { Box, Button, Input, Heading, IconButton, useBreakpointValue, Drawer, DrawerOverlay, DrawerContent, DrawerHeader, DrawerBody, DrawerCloseButton } from '@chakra-ui/react';
+import { Box, Button, Input, useBreakpointValue, Drawer, DrawerOverlay, DrawerContent, DrawerHeader, DrawerBody, DrawerCloseButton } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
-import { FiX } from 'react-icons/fi';
 
 interface AddItemFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (title: string, xp: number) => void;
-  title: string;
   type: 'action' | 'reward';
   mode?: 'add' | 'edit';
   initialTitle?: string;
   initialXP?: number;
 }
 
-export default function AddItemForm({ isOpen, onClose, onSubmit, title, type, mode = 'add', initialTitle = '', initialXP }: AddItemFormProps) {
+export default function AddItemForm({ isOpen, onClose, onSubmit, type, mode = 'add', initialTitle = '', initialXP }: AddItemFormProps) {
   const [itemTitle, setItemTitle] = useState(initialTitle);
   const [itemXP, setItemXP] = useState(initialXP !== undefined ? initialXP.toString() : '');
   const isMobile = useBreakpointValue({ base: true, md: false });

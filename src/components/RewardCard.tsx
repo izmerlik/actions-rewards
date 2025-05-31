@@ -1,7 +1,7 @@
-import { Box, IconButton, Menu, MenuButton, MenuList, MenuItem, Text, Tooltip, Input } from '@chakra-ui/react';
+import { Box, IconButton, Menu, MenuButton, MenuList, MenuItem, Text, Tooltip } from '@chakra-ui/react';
 import { DraggableProvided, DraggableStateSnapshot } from '@hello-pangea/dnd';
 import React, { useRef, useEffect, useState } from 'react';
-import { FiMoreVertical, FiX, FiSave } from 'react-icons/fi';
+import { FiMoreVertical } from 'react-icons/fi';
 import { MdReplay, MdStarOutline } from 'react-icons/md';
 
 import { Reward } from '@/types';

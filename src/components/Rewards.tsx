@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Button, Input, Heading, Stack, Icon, Text } from '@chakra-ui/react';
+import { Box, Button, Heading, Stack, Text } from '@chakra-ui/react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { useState, useEffect, useCallback } from 'react';
@@ -16,8 +16,6 @@ import AddItemForm from './AddItemForm';
 export default function Rewards() {
   const { user, updateUserXP } = useAuth();
   const [rewards, setRewards] = useState<Reward[]>([]);
-  const [newRewardTitle, setNewRewardTitle] = useState('');
-  const [newRewardXPCost, setNewRewardXPCost] = useState('');
   const [loading, setLoading] = useState(true);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
@@ -27,7 +25,6 @@ export default function Rewards() {
   const fetchRewards = useCallback(async () => {
     if (!user) return;
     
-    console.log('Fetching rewards for user:', user.id);
     const rewardsRef = collection(db, 'rewards');
     const q = query(rewardsRef, where('userId', '==', user.id));
     const querySnapshot = await getDocs(q);
@@ -39,7 +36,6 @@ export default function Rewards() {
       redeemedAt: doc.data().redeemedAt?.toDate(),
     })) as Reward[];
     
-    console.log('Fetched rewards:', rewardsData);
     setRewards(rewardsData);
     setLoading(false);
   }, [user]);
@@ -55,7 +51,6 @@ export default function Rewards() {
 
     try {
       const now = new Date();
-      console.log('Adding new reward:', { title, xpCost, userId: user.id });
       const docRef = await addDoc(collection(db, 'rewards'), {
         userId: user.id,
         title,
@@ -63,7 +58,6 @@ export default function Rewards() {
         redeemedAt: null,
         createdAt: now,
       });
-      console.log('Reward added with ID:', docRef.id);
 
       // Prepend new reward to the list
       const newReward: Reward = {
@@ -75,11 +69,7 @@ export default function Rewards() {
         createdAt: now,
       };
       setRewards([newReward, ...rewards]);
-      // Optionally, fetch the updated list from Firestore
-      // await fetchRewards();
-      console.log('Rewards list refreshed');
     } catch (error) {
-      console.error('Error adding reward:', error);
     }
   };
 
@@ -107,7 +97,6 @@ export default function Rewards() {
           : r
       ));
     } catch (error) {
-      console.error('Error redeeming reward:', error);
     }
   };
 
@@ -124,18 +113,15 @@ export default function Rewards() {
           : r
       ));
     } catch (error) {
-      console.error('Error repeating reward:', error);
     }
   };
 
   const handleDeleteReward = async (rewardId: string) => {
-    console.log('Delete pressed for reward:', rewardId);
     setMenuOpenId(null);
     try {
       await deleteDoc(doc(db, 'rewards', rewardId));
       setRewards(rewards.filter(r => r.id !== rewardId));
     } catch (error) {
-      console.error('Error deleting reward:', error);
     }
   };
 
@@ -146,22 +132,8 @@ export default function Rewards() {
       await updateDoc(rewardRef, { title, xpCost });
       setRewards(rewards.map(r => r.id === id ? { ...r, title, xpCost } : r));
     } catch (error) {
-      console.error('Error editing reward:', error);
     }
   };
-
-  const sortedRewards = [...rewards].sort((a, b) => {
-    if (!!a.redeemedAt === !!b.redeemedAt) return 0;
-    return a.redeemedAt ? 1 : -1;
-  });
-
-  // Helper to reorder array
-  function reorder(list: Reward[], startIndex: number, endIndex: number): Reward[] {
-    const result = Array.from(list);
-    const [removed] = result.splice(startIndex, 1);
-    result.splice(endIndex, 0, removed);
-    return result;
-  }
 
   // Only reorder active (not redeemed) cards
   const activeRewards = rewards
@@ -170,6 +142,14 @@ export default function Rewards() {
   const redeemedRewards = rewards
     .filter(r => r.redeemedAt)
     .sort((a, b) => (b.redeemedAt?.getTime?.() || 0) - (a.redeemedAt?.getTime?.() || 0));
+
+  // Helper to reorder array
+  function reorder(list: Reward[], startIndex: number, endIndex: number): Reward[] {
+    const result = Array.from(list);
+    const [removed] = result.splice(startIndex, 1);
+    result.splice(endIndex, 0, removed);
+    return result;
+  }
 
   function onDragEnd(result: DropResult) {
     if (!result.destination) return;
@@ -183,8 +163,6 @@ export default function Rewards() {
   if (loading) {
     return null;
   }
-
-  console.log('Rendering rewards. Active:', activeRewards.length, 'Redeemed:', redeemedRewards.length);
 
   return (
     <Box className="space-y-4" pt={6}>
@@ -277,7 +255,6 @@ export default function Rewards() {
         isOpen={isAddFormOpen}
         onClose={() => setIsAddFormOpen(false)}
         onSubmit={handleAddReward}
-        title="Add New Reward"
         type="reward"
       />
       <AddItemForm
@@ -293,7 +270,6 @@ export default function Rewards() {
             setEditingReward(null);
           }
         }}
-        title="Edit Reward"
         type="reward"
         mode="edit"
         initialTitle={editingReward?.title}

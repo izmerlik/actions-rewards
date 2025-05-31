@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Button, Input, Heading, Icon, Stack, Text } from '@chakra-ui/react';
+import { Box, Button, Heading, Stack, Text } from '@chakra-ui/react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { useState, useEffect, useCallback } from 'react';
@@ -16,8 +16,6 @@ import AddItemForm from './AddItemForm';
 export default function Actions() {
   const { user, updateUserXP } = useAuth();
   const [actions, setActions] = useState<Action[]>([]);
-  const [newActionTitle, setNewActionTitle] = useState('');
-  const [newActionXP, setNewActionXP] = useState('');
   const [loading, setLoading] = useState(true);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
@@ -124,7 +122,6 @@ export default function Actions() {
   };
 
   const handleDeleteAction = async (actionId: string) => {
-    console.log('Delete pressed for action:', actionId);
     setMenuOpenId(null);
     try {
       await deleteDoc(doc(db, 'actions', actionId));
@@ -144,11 +141,6 @@ export default function Actions() {
       console.error('Error editing action:', error);
     }
   };
-
-  const sortedActions = [...actions].sort((a, b) => {
-    if (a.completed === b.completed) return 0;
-    return a.completed ? 1 : -1;
-  });
 
   // Helper to reorder array
   function reorder(list: Action[], startIndex: number, endIndex: number): Action[] {
