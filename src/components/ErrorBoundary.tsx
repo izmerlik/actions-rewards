@@ -1,7 +1,7 @@
 'use client';
 
-import { Box, Button, Heading, Text } from '@chakra-ui/react';
 import { Component, ErrorInfo, ReactNode } from 'react';
+import { Box, Button, Heading, Text } from '@chakra-ui/react';
 
 interface Props {
   children: ReactNode;

@@ -1,7 +1,7 @@
 'use client';
 
-import { Box, Button, Heading, Text, useToast } from '@chakra-ui/react';
 import { useEffect } from 'react';
+import { Box, Button, Heading, Text, useToast } from '@chakra-ui/react';
 
 interface ErrorHandlerProps {
   error: Error | null;

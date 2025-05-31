@@ -1,10 +1,10 @@
 'use client';
 
-import { Box, Button, Input, Heading, Icon, Stack, Text, Spinner, Skeleton, VStack, SkeletonCircle } from '@chakra-ui/react';
-import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { useState, useEffect, useCallback } from 'react';
-import { FiPlus } from 'react-icons/fi';
-import { DropResult } from '@hello-pangea/dnd';
+import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
+import { Box, Button, Card, CardBody, CardHeader, Flex, Heading, Menu, MenuButton, MenuItem, MenuList, Skeleton, SkeletonCircle, Stack, Text, useDisclosure } from '@chakra-ui/react';
+import { FaEllipsisV, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
@@ -42,12 +42,13 @@ export default function Actions() {
     setPendingAdd(false);
   };
 
-  const handleCompleteAction = async (action: Action) => {
+  const handleCompleteAction = async (actionId: string) => {
     if (!user) return;
-    const actionRef = action.id;
+    const action = actions.find(a => a.id === actionId);
+    if (!action) return;
     const userRef = doc(db, 'users', user.id);
     const newXP = user.xp + action.xp;
-    await updateItem(actionRef, {
+    await updateItem(actionId, {
       completed: true,
       completedAt: new Date(),
     });
@@ -55,14 +56,12 @@ export default function Actions() {
     updateUserXP(newXP);
   };
 
-  const handleRepeatAction = async (action: Action) => {
+  const handleRepeatAction = async (actionId: string) => {
     if (!user) return;
-    setPendingRepeatId(action.id);
-    await updateItem(action.id, {
+    await updateItem(actionId, {
       completed: false,
       completedAt: null,
     });
-    setPendingRepeatId(null);
   };
 
   const handleDeleteAction = async (actionId: string) => {
@@ -117,17 +116,17 @@ export default function Actions() {
         action={action}
         menuOpenId={menuOpenId}
         setMenuOpenId={setMenuOpenId}
-        handleDeleteAction={handleDeleteAction}
-        handleCompleteAction={handleCompleteAction}
-        handleRepeatAction={handleRepeatAction}
-        handleEditAction={() => {}}
-        provided={provided}
-        snapshot={snapshot}
+        onDelete={() => handleDeleteAction(action.id)}
         onEdit={(a) => {
           setEditingAction(a);
           setIsEditFormOpen(true);
         }}
+        onComplete={() => handleCompleteAction(action.id)}
+        onRepeat={() => handleRepeatAction(action.id)}
         isCompleted={action.completed}
+        handleEditAction={() => {}}
+        provided={provided}
+        snapshot={snapshot}
       />
     );
   }
@@ -139,7 +138,7 @@ export default function Actions() {
           Actions
         </Heading>
         <Button
-          leftIcon={<FiPlus />}
+          leftIcon={<FaPlus />}
           variant="outline"
           borderColor="gray.200"
           color="black"
@@ -178,15 +177,42 @@ export default function Actions() {
               </Box>
             </Box>
           ) : (
-            <ItemList
-              items={pendingAdd ? [null, ...activeActions] : activeActions}
-              droppableId="actions"
-              onDragEnd={onDragEnd}
-              renderItem={(item, index, provided, snapshot) =>
-                item === null ? <ShimmerCard key="shimmer-add" /> : renderActionCard(item, index, provided, snapshot)
-              }
-              emptyMessage={actions.length === 0 ? "No actions yet. Add your first action!" : undefined}
-            />
+            actions.length === 0 ? (
+              <Text color="gray.500" textAlign="center" py={4}>
+                No actions yet. Add your first action!
+              </Text>
+            ) : (
+              <ItemList
+                id="actions-list"
+                title="Actions"
+                items={activeActions}
+                renderItem={(item, index) =>
+                  pendingEditId === item.id || pendingDeleteId === item.id ? (
+                    <ShimmerCard key={item.id} />
+                  ) : (
+                    <ActionCard
+                      key={item.id}
+                      action={item}
+                      menuOpenId={menuOpenId}
+                      setMenuOpenId={setMenuOpenId}
+                      onDelete={() => handleDeleteAction(item.id)}
+                      onEdit={(a) => {
+                        setEditingAction(a);
+                        setIsEditFormOpen(true);
+                      }}
+                      onComplete={() => handleCompleteAction(item.id)}
+                      onRepeat={() => handleRepeatAction(item.id)}
+                      isCompleted={item.completed}
+                      handleEditAction={() => {}}
+                      provided={{} as any}
+                      snapshot={{} as any}
+                    />
+                  )
+                }
+                provided={{} as any}
+                snapshot={{} as any}
+              />
+            )
           )}
         </Box>
       )}
@@ -203,17 +229,17 @@ export default function Actions() {
                   action={action}
                   menuOpenId={menuOpenId}
                   setMenuOpenId={setMenuOpenId}
-                  handleDeleteAction={handleDeleteAction}
-                  handleCompleteAction={handleCompleteAction}
-                  handleRepeatAction={handleRepeatAction}
-                  handleEditAction={() => {}}
-                  provided={{} as any}
-                  snapshot={{} as any}
-                  isCompleted
+                  onDelete={() => handleDeleteAction(action.id)}
                   onEdit={(a) => {
                     setEditingAction(a);
                     setIsEditFormOpen(true);
                   }}
+                  onComplete={() => handleCompleteAction(action.id)}
+                  onRepeat={() => handleRepeatAction(action.id)}
+                  isCompleted
+                  handleEditAction={() => {}}
+                  provided={{} as any}
+                  snapshot={{} as any}
                 />
               )
             )}

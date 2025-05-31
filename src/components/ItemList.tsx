@@ -1,38 +1,47 @@
-import { Stack, Text } from '@chakra-ui/react';
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import React from 'react';
+import { Droppable, DroppableProvided, DroppableStateSnapshot } from '@hello-pangea/dnd';
+import { Box, Text } from '@chakra-ui/react';
 
-interface ItemListProps<T> {
-  items: T[];
-  droppableId: string;
-  onDragEnd: (result: DropResult) => void;
-  renderItem: (item: T, index: number, provided: unknown, snapshot: unknown) => React.ReactNode;
-  emptyMessage?: string;
+interface Item {
+  id: string;
+  title: string;
+  [key: string]: unknown;
 }
 
-function ItemList<T>({ items, droppableId, onDragEnd, renderItem, emptyMessage }: ItemListProps<T>) {
+interface ItemListProps {
+  id: string;
+  title: string;
+  items: Item[];
+  renderItem: (item: Item, index: number) => React.ReactNode;
+  provided: DroppableProvided;
+  snapshot: DroppableStateSnapshot;
+}
+
+const ItemList: React.FC<ItemListProps> = ({
+  id,
+  title,
+  items,
+  renderItem,
+  provided,
+  snapshot,
+}) => {
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
-      <Droppable droppableId={droppableId}>
-        {(provided) => (
-          <Stack spacing={4} {...provided.droppableProps} ref={provided.innerRef}>
-            {items.length === 0 ? (
-              <Text color="gray.500" textAlign="center" py={4}>
-                {emptyMessage}
-              </Text>
-            ) : (
-              items.map((item, index) => (
-                <Draggable key={(item as any).id} draggableId={(item as any).id} index={index}>
-                  {(provided, snapshot) => renderItem(item, index, provided, snapshot)}
-                </Draggable>
-              ))
-            )}
-            {provided.placeholder}
-          </Stack>
-        )}
-      </Droppable>
-    </DragDropContext>
+    <Box
+      ref={provided.innerRef}
+      {...provided.droppableProps}
+      bg={snapshot.isDraggingOver ? 'gray.50' : 'transparent'}
+      borderRadius="8px"
+      p={2}
+    >
+      {items.length === 0 ? (
+        <Text color="gray.500" textAlign="center" py={4}>
+          No {title.toLowerCase()} yet
+        </Text>
+      ) : (
+        items.map((item, index) => renderItem(item, index))
+      )}
+      {provided.placeholder}
+    </Box>
   );
-}
+};
 
 export default ItemList; 

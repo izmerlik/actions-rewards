@@ -2,7 +2,15 @@ import { useState, useEffect, useCallback } from 'react';
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, DocumentData, QueryConstraint } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
-export function useFirestoreCollection<T extends { id: string }>(
+interface FirestoreDocument {
+  id: string;
+  createdAt?: Date;
+  completedAt?: Date;
+  redeemedAt?: Date;
+  [key: string]: unknown;
+}
+
+export function useFirestoreCollection<T extends FirestoreDocument>(
   collectionName: string,
   userId?: string,
   extraQuery?: QueryConstraint[]
@@ -18,13 +26,16 @@ export function useFirestoreCollection<T extends { id: string }>(
         q = query(collection(db, collectionName), where('userId', '==', userId), ...(extraQuery || []));
       }
       const querySnapshot = await getDocs(q);
-      const data = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate?.(),
-        completedAt: doc.data().completedAt?.toDate?.(),
-        redeemedAt: doc.data().redeemedAt?.toDate?.(),
-      })) as unknown as T[];
+      const data = querySnapshot.docs.map(doc => {
+        const docData = doc.data();
+        return {
+          id: doc.id,
+          ...docData,
+          createdAt: docData.createdAt?.toDate?.(),
+          completedAt: docData.completedAt?.toDate?.(),
+          redeemedAt: docData.redeemedAt?.toDate?.(),
+        } as T;
+      });
       setItems(data);
     } finally {
       setLoading(false);
