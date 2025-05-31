@@ -27,7 +27,7 @@ const ActionCard: React.FC<ActionCardProps> = ({
   handleDeleteAction,
   handleCompleteAction,
   handleRepeatAction,
-  handleEditAction,
+  handleEditAction: _handleEditAction,
   provided,
   snapshot,
   isCompleted = false,

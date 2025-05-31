@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Button, Heading, Stack, Text } from '@chakra-ui/react';
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable, DropResult, DraggableProvided, DraggableStateSnapshot } from '@hello-pangea/dnd';
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { useState, useEffect, useCallback } from 'react';
 import { FiPlus } from 'react-icons/fi';
@@ -237,8 +237,8 @@ export default function Rewards() {
                 handleRedeemReward={handleRedeemReward}
                 handleRepeatReward={handleRepeatReward}
                 handleEditReward={handleEditReward}
-                provided={{} as any}
-                snapshot={{} as any}
+                provided={undefined as unknown as DraggableProvided}
+                snapshot={undefined as unknown as DraggableStateSnapshot}
                 isRedeemed
                 userXP={user?.xp ?? 0}
                 onEdit={(r) => {

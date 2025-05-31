@@ -28,7 +28,7 @@ const RewardCard: React.FC<RewardCardProps> = ({
   handleDeleteReward,
   handleRedeemReward,
   handleRepeatReward,
-  handleEditReward,
+  handleEditReward: _handleEditReward,
   provided,
   snapshot,
   isRedeemed = false,

@@ -4,8 +4,8 @@ import { Box, Button, Heading, Text, Tabs, TabList, TabPanels, Tab, TabPanel, Sp
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
-import ErrorHandler from '@/components/ErrorHandler';
 import Actions from '@/components/Actions';
+import ErrorHandler from '@/components/ErrorHandler';
 import Rewards from '@/components/Rewards';
 import { useAuth } from '@/contexts/AuthContext';
 
