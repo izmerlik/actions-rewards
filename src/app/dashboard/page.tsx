@@ -4,9 +4,9 @@ import { Box, Button, Heading, Text, Tabs, TabList, TabPanels, Tab, TabPanel, Sp
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
+import ErrorHandler from '@/components/ErrorHandler';
 import Actions from '@/components/Actions';
 import Rewards from '@/components/Rewards';
-import ErrorHandler from '@/components/ErrorHandler';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Dashboard() {

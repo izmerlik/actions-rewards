@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Button, Heading, Stack, Text } from '@chakra-ui/react';
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable, DropResult, DraggableProvided, DraggableStateSnapshot } from '@hello-pangea/dnd';
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { useState, useEffect, useCallback } from 'react';
 import { FiPlus } from 'react-icons/fi';
@@ -243,8 +243,8 @@ export default function Actions() {
                 handleCompleteAction={handleCompleteAction}
                 handleRepeatAction={handleRepeatAction}
                 handleEditAction={handleEditAction}
-                provided={{} as any}
-                snapshot={{} as any}
+                provided={undefined as unknown as DraggableProvided}
+                snapshot={undefined as unknown as DraggableStateSnapshot}
                 isCompleted
                 onEdit={(a) => {
                   setEditingAction(a);
@@ -260,7 +260,6 @@ export default function Actions() {
         isOpen={isAddFormOpen}
         onClose={() => setIsAddFormOpen(false)}
         onSubmit={handleAddAction}
-        title="Add New Action"
         type="action"
       />
       <AddItemForm
@@ -276,7 +275,6 @@ export default function Actions() {
             setEditingAction(null);
           }
         }}
-        title="Edit Action"
         type="action"
         mode="edit"
         initialTitle={editingAction?.title}

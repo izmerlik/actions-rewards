@@ -10,8 +10,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
 import { Reward } from '@/types';
 
-import RewardCard from './RewardCard';
 import AddItemForm from './AddItemForm';
+import RewardCard from './RewardCard';
 
 export default function Rewards() {
   const { user, updateUserXP } = useAuth();

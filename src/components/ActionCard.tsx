@@ -13,7 +13,7 @@ interface ActionCardProps {
   handleDeleteAction: (id: string) => void;
   handleCompleteAction: (action: Action) => void;
   handleRepeatAction: (action: Action) => void;
-  handleEditAction: (id: string, title: string, xp: number) => void;
+  handleEditAction: (_id: string, _title: string, _xp: number) => void;
   provided: DraggableProvided;
   snapshot: DraggableStateSnapshot;
   isCompleted?: boolean;

@@ -13,7 +13,7 @@ interface RewardCardProps {
   handleDeleteReward: (id: string) => void;
   handleRedeemReward: (reward: Reward) => void;
   handleRepeatReward: (reward: Reward) => void;
-  handleEditReward: (id: string, title: string, xpCost: number) => void;
+  handleEditReward: (_id: string, _title: string, _xpCost: number) => void;
   provided?: DraggableProvided;
   snapshot?: DraggableStateSnapshot;
   isRedeemed?: boolean;
