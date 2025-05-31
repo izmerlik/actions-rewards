@@ -12,7 +12,7 @@ export interface Action {
   xp: number;
   completed: boolean;
   createdAt: Date;
-  completedAt?: Date | null;
+  completedAt?: Date;
 }
 
 export interface Reward {
@@ -21,7 +21,7 @@ export interface Reward {
   title: string;
   xpCost: number;
   createdAt: Date;
-  redeemedAt?: Date | null;
+  redeemedAt?: Date;
 }
 
 export interface AuthContextType {

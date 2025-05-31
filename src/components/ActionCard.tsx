@@ -1,74 +1,154 @@
-import React from 'react';
-import { Box, Button, Card, CardBody, CardHeader, Flex, Menu, MenuButton, MenuItem, MenuList, Text } from '@chakra-ui/react';
-import { Draggable } from '@hello-pangea/dnd';
-import { FaEllipsisV, FaEdit, FaTrash } from 'react-icons/fa';
+import { Box, IconButton, Menu, MenuButton, MenuList, MenuItem, Text, Input } from '@chakra-ui/react';
+import { DraggableProvided, DraggableStateSnapshot } from '@hello-pangea/dnd';
+import React, { useRef, useEffect, useState } from 'react';
+import { FiMoreVertical, FiX, FiSave } from 'react-icons/fi';
+import { MdCheck, MdReplay } from 'react-icons/md';
 
 import { Action } from '@/types';
 
 interface ActionCardProps {
   action: Action;
-  index: number;
-  onEdit: (action: Action) => void;
-  onDelete: (action: Action) => void;
+  menuOpenId: string | null;
+  setMenuOpenId: (id: string | null) => void;
+  handleDeleteAction: (id: string) => void;
+  handleCompleteAction: (action: Action) => void;
+  handleRepeatAction: (action: Action) => void;
+  handleEditAction: (id: string, title: string, xp: number) => void;
+  provided: DraggableProvided;
+  snapshot: DraggableStateSnapshot;
+  isCompleted?: boolean;
+  onEdit?: (action: Action) => void;
 }
 
-export default function ActionCard({ action, index, onEdit, onDelete }: ActionCardProps) {
-  const handleEditAction = (action: Action) => {
-    onEdit(action);
-  };
-
-  const handleDeleteAction = (action: Action) => {
-    onDelete(action);
-  };
+const ActionCard: React.FC<ActionCardProps> = ({
+  action,
+  menuOpenId,
+  setMenuOpenId,
+  handleDeleteAction,
+  handleCompleteAction,
+  handleRepeatAction,
+  handleEditAction,
+  provided,
+  snapshot,
+  isCompleted = false,
+  onEdit,
+}) => {
+  const [isMultiLine, setIsMultiLine] = useState(false);
+  const nameRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (nameRef.current) {
+      const lineHeight = parseInt(getComputedStyle(nameRef.current).lineHeight);
+      const height = nameRef.current.scrollHeight;
+      setIsMultiLine(height > lineHeight + 1);
+    }
+  }, [action.title]);
 
   return (
-    <Draggable draggableId={action.id} index={index}>
-      {(provided) => (
-        <Card
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          {...provided.dragHandleProps}
-          mb={4}
-          borderWidth={1}
-          borderColor="gray.200"
-          borderRadius="lg"
-          overflow="hidden"
-          bg="white"
-          _hover={{ borderColor: 'gray.300' }}
-        >
-          <CardHeader p={4} pb={2}>
-            <Flex justify="space-between" align="center">
-              <Text fontSize="md" fontWeight={600} color="gray.800">
-                {action.title}
-              </Text>
-              <Menu>
-                <MenuButton
-                  as={Button}
-                  variant="ghost"
-                  size="sm"
-                  p={1}
-                  _hover={{ bg: 'gray.100' }}
-                >
-                  <FaEllipsisV />
-                </MenuButton>
-                <MenuList>
-                  <MenuItem icon={<FaEdit />} onClick={() => handleEditAction(action)}>
-                    Edit
-                  </MenuItem>
-                  <MenuItem icon={<FaTrash />} onClick={() => handleDeleteAction(action)}>
-                    Delete
-                  </MenuItem>
-                </MenuList>
-              </Menu>
-            </Flex>
-          </CardHeader>
-          <CardBody p={4} pt={2}>
-            <Text color="gray.600" fontSize="sm">
-              {action.xp} XP
-            </Text>
-          </CardBody>
-        </Card>
+    <Box
+      ref={provided.innerRef}
+      {...provided.draggableProps}
+      {...provided.dragHandleProps}
+      bg={isCompleted ? 'transparent' : 'white'}
+      borderRadius="16px"
+      borderWidth={1}
+      borderColor="gray.200"
+      boxShadow={isCompleted ? 'none' : snapshot.isDragging ? 'xl' : 'sm'}
+      transition="box-shadow 0.2s"
+      display="flex"
+      alignItems={isMultiLine ? 'flex-start' : 'center'}
+      justifyContent="space-between"
+      p={4}
+      _hover={!isCompleted ? { boxShadow: 'xl', zIndex: 1 } : undefined}
+      position="relative"
+    >
+      {menuOpenId === action.id && (
+        <Box
+          position="fixed"
+          top={0}
+          left={0}
+          width="100vw"
+          height="100vh"
+          zIndex={1399}
+          bg="transparent"
+          onClick={() => setMenuOpenId(null)}
+        />
       )}
-    </Draggable>
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        w="24px"
+        {...(isMultiLine ? { h: '36px', alignSelf: 'flex-start' } : { alignSelf: 'stretch' })}
+      >
+        <Menu isOpen={menuOpenId === action.id} onOpen={() => setMenuOpenId(action.id)} onClose={() => setMenuOpenId(null)}>
+          <MenuButton
+            as={IconButton}
+            aria-label="Options"
+            variant="unstyled"
+            bg="transparent"
+            color="gray.400"
+            _hover={{ bg: 'transparent', color: 'gray.600' }}
+            _active={{ bg: 'transparent' }}
+            _focus={{ bg: 'transparent' }}
+            sx={{
+              width: '24px',
+              height: '24px',
+              minWidth: '24px',
+              minHeight: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'static',
+              '& svg': {
+                transition: 'color 0.2s',
+              },
+              '&:hover svg': {
+                color: '#4A5568',
+              },
+            }}
+            icon={<FiMoreVertical size={24} />}
+          />
+          <MenuList boxShadow="2xl" borderRadius="16px" zIndex={1400}>
+            <MenuItem onClick={() => handleDeleteAction(action.id)} color="red.500">Delete</MenuItem>
+            {!isCompleted && <MenuItem onClick={() => onEdit && onEdit(action)}>Edit</MenuItem>}
+          </MenuList>
+        </Menu>
+      </Box>
+      <Box flex={1} minW={0} display="flex" alignItems={isMultiLine ? 'flex-start' : 'center'} justifyContent="space-between" gap={4} ml={4}>
+        <Box minW={0} flex={1} ref={nameRef}>
+          <Text fontWeight={600} color={isCompleted ? 'gray.400' : 'gray.800'}>
+            {action.title}
+          </Text>
+          <Text fontSize="sm" color={isCompleted ? 'gray.400' : 'gray.500'}>{action.xp} XP</Text>
+        </Box>
+        {isCompleted ? (
+          <IconButton
+            aria-label="Repeat"
+            icon={<MdReplay size={20} color="black" />}
+            variant="outline"
+            borderColor="gray.200"
+            onClick={() => handleRepeatAction(action)}
+            sx={{ width: '48px', height: '48px', minWidth: '48px', minHeight: '48px', borderRadius: '8px' }}
+            flexShrink={0}
+            flex="none"
+          />
+        ) : (
+          <IconButton
+            aria-label="Complete"
+            icon={<MdCheck size={20} color="black" />}
+            variant="outline"
+            borderColor="gray.200"
+            onClick={() => handleCompleteAction(action)}
+            size="md"
+            borderRadius="8px"
+            sx={{ width: '48px', height: '48px', minWidth: '48px', minHeight: '48px', borderRadius: '8px' }}
+            flexShrink={0}
+            flex="none"
+          />
+        )}
+      </Box>
+    </Box>
   );
-} 
+};
+
+export default ActionCard; 

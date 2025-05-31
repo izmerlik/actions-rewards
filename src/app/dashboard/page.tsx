@@ -3,16 +3,10 @@
 import { Box, Button, Heading, Text, Tabs, TabList, TabPanels, Tab, TabPanel, Spinner } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { DragDropContext, DropResult } from '@hello-pangea/dnd';
-import { useCallback } from 'react';
 
-import { useActions } from '@/hooks/useActions';
-import { useRewards } from '@/hooks/useRewards';
-import { Action } from '@/types';
-import { Reward } from '@/types';
-import ErrorHandler from '@/components/ErrorHandler';
 import Actions from '@/components/Actions';
 import Rewards from '@/components/Rewards';
+import ErrorHandler from '@/components/ErrorHandler';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Dashboard() {
@@ -149,10 +143,10 @@ export default function Dashboard() {
               color="black"
               onClick={signOut}
               size="sm"
-              w="90px"
-              h="36px"
+              w="120px"
+              h="48px"
               borderRadius="8px"
-              fontSize="sm"
+              fontSize="md"
             >
               Sign Out
             </Button>
